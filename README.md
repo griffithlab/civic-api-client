@@ -11,3 +11,9 @@ cd civic-api-client
 virtualenv myenv && source myenv/bin/activate
 pip install .
 ```
+
+##Usage
+Very basic functionality for now:
+```
+civic-api-client  variants-list --no-coords
+```
