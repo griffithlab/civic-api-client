@@ -1,6 +1,7 @@
 "variants_lister.py - Get variants using the CIVIC API"
 
 import argparse
+from flask import Flask, render_template
 import json
 import requests
 
@@ -51,7 +52,8 @@ class VariantsLister:
     def get_civic_genes(self):
         "Get a list of genes from CIVIC"
         genes_url = self.civic_url + 'genes?count=' + str(self.max_gene_count)
-        self.genes = sorted(requests.get(genes_url).json(), key=lambda key: int(key['id']))
+        self.genes = sorted(requests.get(genes_url).json(), \
+                            key=lambda key: int(key['id']))
 
     def get_variant_ids(self):
         "Get a list of variants using a list of genes"
@@ -95,7 +97,13 @@ class VariantsLister:
 
     def print_variant_coordinates_web(self):
         "Publish to web page"
-        print "published"
+        app = Flask("civic_api_client")
+        @app.route("/")
+        def template_test():
+                return render_template('variants.html', \
+                        my_string = "Wheeeee!", my_list = [0,1,2,3,4,5],\
+                        all_variant_details = self.all_variant_details)
+        app.run(debug=True)
 
     def main(self):
         "Execution starts here"

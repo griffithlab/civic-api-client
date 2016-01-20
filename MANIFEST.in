@@ -1,0 +1,2 @@
+recursive-include civic_api_client/templates *
+recursive-include civic_api_client/static *

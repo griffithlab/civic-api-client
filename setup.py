@@ -5,6 +5,7 @@ setup(name='civic_api_client',
       description = 'Examples and tools for using the CIVIC API',
       install_requires = [
           'requests',
+          'flask',
       ],
       entry_points = {
           'console_scripts': ['civic-api-client=civic_api_client.command_line:main'],
@@ -19,4 +20,5 @@ setup(name='civic_api_client',
       author_email = 'avinash3003@yahoo.co.in',
       license = 'MIT',
       packages = ['civic_api_client'],
-      include_package_data = False)
+      include_package_data = True,
+      zip_safe = False)

@@ -13,7 +13,12 @@ pip install .
 ```
 
 ##Usage
-Very basic functionality for now:
+Very basic functionality for now
+To output variants to the screen(including variants with no co-ordinates):
 ```
 civic-api-client  variants-list --no-coords
+```
+To output variants to a web-view(query variants from first 10 genes):
+```
+civic-api-client  variants-list --no-coords --max-gene-count 10 --web
 ```
