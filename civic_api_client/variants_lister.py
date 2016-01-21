@@ -101,7 +101,6 @@ class VariantsLister:
         @app.route("/")
         def template_test():
                 return render_template('variants.html', \
-                        my_string = "Wheeeee!", my_list = [0,1,2,3,4,5],\
                         all_variant_details = self.all_variant_details)
         app.run(debug=True)
 
