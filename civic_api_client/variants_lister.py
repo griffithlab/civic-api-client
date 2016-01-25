@@ -71,10 +71,24 @@ class VariantsLister:
         variant_url = self.civic_url + 'variants/' + str(variant_id)
         return requests.get(variant_url).json()
 
+    def check_for_no_coords(self, variant_details):
+        "Does the variant have the chr, start and stop defined"
+        return variant_details['coordinates']['chromosome'] != None and \
+               variant_details['coordinates']['start'] != None and \
+               variant_details['coordinates']['stop'] != None
+
+    def satisfies_conditions(self, variant_details):
+        "Does the variant satisfy any one of the conditions"
+        satisfies = True
+        if 'coordinates' in variant_details:
+            if self.args.no_coords:
+                satisfies = satisfies and self.check_for_no_coords(variant_details)
+        return satisfies
+
     def print_variant_coordinates_screen(self):
         "Parse the details of the variants"
         for variant_details in self.all_variant_details:
-            if 'coordinates' in variant_details:
+            if self.satisfies_conditions(variant_details):
                 print "ID: ", variant_details['id'], \
                         "Name: ", variant_details['name'], \
                         "Coordinate1: ", \
@@ -85,9 +99,6 @@ class VariantsLister:
                         variant_details['coordinates']['chromosome2'],\
                         variant_details['coordinates']['start2'],\
                         variant_details['coordinates']['stop2']
-            elif self.args.no_coords:
-                print "coordinates unavailable: ", \
-                    variant_details['id']
 
     def add_variant_detail(self, variant_id, variant_detail):
         "Append variant detail to list of variant details"
