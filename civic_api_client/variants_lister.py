@@ -17,12 +17,22 @@ class VariantDetails:
         self.coordinates = None
         self.name = None
         self.id = None
+        self.ref_base = None
+        self.var_base = None
+        self.parse_variant_details(variant_details)
+
+    def parse_variant_details(self, variant_details):
+        "Parse variant details into class members"
         if 'coordinates' in variant_details:
             self.coordinates = variant_details['coordinates']
         if 'name' in variant_details:
             self.name = variant_details['name']
         if 'id' in variant_details:
             self.id = variant_details['id']
+        if 'reference_bases' in variant_details:
+            self.ref_base = variant_details['reference_bases']
+        if 'variant_bases' in variant_details:
+            self.var_base = variant_details['variant_bases']
 
     #Returns true if the variant does not have defined coordinates
     def no_coords(self):
