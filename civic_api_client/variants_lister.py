@@ -44,19 +44,47 @@ class VariantDetails:
     #Returns true if the variant start > stop
     def wrong_coords(self):
         "Does the variant have start > stop"
-        return (self.coordinates['start'] > \
-               self.coordinates['stop']) or \
-               (self.coordinates['start2'] > \
-               self.coordinates['stop2'])
+        try:
+            rval = (int(self.coordinates['start']) > \
+             int(self.coordinates['stop'])) or \
+            (int(self.coordinates['start2']) > \
+             int(self.coordinates['stop2']))
+        except ValueError:
+            return True
+        return rval
+
+    #Returns true if ref/variant base not in [A,C,G,T,N]
+    def wrong_base(self):
+        "Are both the ref/variant base in [A,C,G,T,N,None]"
+        allowed_nucs = ['A', 'C', 'G', 'T', 'N']
+        return (self.ref_base not in allowed_nucs or
+                self.var_base not in allowed_nucs)
+
+    #Returns true if variant length within limit or coordinates undefined
+    def max_var_length(self):
+        "Does the variant have start - stop <= max_var_length"
+        if self.coordinates and self.coordinates['stop'] and \
+           self.coordinates['start']:
+            try:
+                rval = int(self.coordinates['stop']) - \
+                        int(self.coordinates['start']) < \
+                        self.args.max_var_length
+            except:
+                return True
+            return rval
 
     def satisfies_filters(self):
         "Does the variant satisfy any one of the conditions"
         satisfies = True
         if self.coordinates:
             if self.args.no_coords:
-                satisfies = satisfies and self.no_coords()
-            if self.args.wrong_coords:
-                satisfies = satisfies and self.wrong_coords()
+                satisfies = self.no_coords()
+            if not satisfies and self.args.wrong_coords:
+                satisfies = self.wrong_coords()
+            if not satisfies and self.args.wrong_base:
+                satisfies = self.wrong_base()
+            if self.args.max_var_length:
+                satisfies = satisfies and self.max_var_length()
         else:
             satisfies = False
         return satisfies
@@ -67,6 +95,10 @@ class VariantDetails:
                 self.id, \
                 "Name: ", \
                 self.name, \
+                "Ref base: ", \
+                self.ref_base, \
+                "Var base: ", \
+                self.var_base, \
                 "Coordinate1: ", \
                 self.coordinates['chromosome'], \
                 self.coordinates['start'], \
@@ -82,10 +114,10 @@ class VariantsLister:
     no_coords = False
     #URL to the CIVIC API
     civic_url = 'https://civic.genome.wustl.edu/api/'
-    #Max number of genes to query
-    max_gene_count = 100000
     #List of variant details
     all_variant_details = []
+    #Details of variants satisfying filters
+    filtered_variant_details = []
     #List of genes that were queried for
     genes = []
     #Arguments to this tool
@@ -109,8 +141,17 @@ class VariantsLister:
             action='store_true',
             help = "Print variants where start > stop",
         )
+        parser.add_argument("--wrong-base",
+            action='store_true',
+            help = "Print variants where ref/var base is not in [A,C,G,T,N,None]",
+        )
         parser.add_argument("--max-gene-count",
             help = "Maximum number of genes to query from CIVIC",
+            type = int,
+            default = 100000
+        )
+        parser.add_argument("--max-var-length",
+            help = "Maximum length of the variants to query from CIVIC",
             type = int,
         )
         parser.add_argument("--web",
@@ -119,13 +160,14 @@ class VariantsLister:
         )
         args = parser.parse_args(self.args)
         if args.max_gene_count:
-            self.max_gene_count = args.max_gene_count
             print "Max number of genes to query is ",args.max_gene_count
+        if args.max_var_length:
+            print "Max length of variants displayed is ",args.max_var_length
         return args
 
     def get_civic_genes(self):
         "Get a list of genes from CIVIC"
-        genes_url = self.civic_url + 'genes?count=' + str(self.max_gene_count)
+        genes_url = self.civic_url + 'genes?count=' + str(self.args.max_gene_count)
         self.genes = sorted(requests.get(genes_url).json(), \
                             key=lambda key: int(key['id']))
 
@@ -145,12 +187,17 @@ class VariantsLister:
         variant_url = self.civic_url + 'variants/' + str(variant_id)
         return requests.get(variant_url).json()
 
-    def print_variant_coordinates_screen(self):
-        "Parse the details of the variants"
+    def filter_variants(self):
+        "Filter the variant details"
         for variant_details in self.all_variant_details:
             vd1 = VariantDetails(self.args, variant_details)
             if vd1.satisfies_filters():
-                vd1.print1()
+                self.filtered_variant_details.append(vd1)
+
+    def print_variant_coordinates_screen(self):
+        "Print the details of the variants to screen"
+        for vd1 in self.filtered_variant_details:
+            vd1.print1()
 
     def add_variant_detail(self, variant_id, variant_detail):
         "Append variant detail to list of variant details"
@@ -164,7 +211,7 @@ class VariantsLister:
         @app.route("/")
         def template_test():
                 return render_template('variants.html', \
-                        all_variant_details = self.all_variant_details)
+                        filtered_variant_details = self.filtered_variant_details)
         app.run(debug=True)
 
     def main(self):
@@ -175,6 +222,7 @@ class VariantsLister:
         for variant_id in variant_ids:
             variant_detail = self.get_variant_details(variant_id)
             self.add_variant_detail(variant_id, variant_detail)
+        self.filter_variants()
         if self.args.web:
             self.print_variant_coordinates_web()
         else:
