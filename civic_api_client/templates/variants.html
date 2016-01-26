@@ -41,23 +41,28 @@
     <table class="sortable">
         <tr>
             <th>Variant ID</th>
+            <th>Name</th>
             <th>Chromosome</th>
+            <th>Ref base</th>
+            <th>Variant base</th>
             <th>Start</th>
             <th>Stop</th>
             <th>Chromosome2</th>
             <th>Start2</th>
             <th>Stop2</th>
         </tr>
-    {% for variant_details in all_variant_details %}
+    {% for variant_details in filtered_variant_details %}
         <tr>
-            {% if 'coordinates' in variant_details %}
-            <td> {{variant_details['id']}} </td>
-            <td> {{variant_details['coordinates']['chromosome']}} </td>
-            <td> {{variant_details['coordinates']['start']}} </td>
-            <td> {{variant_details['coordinates']['stop']}} </td>
-            <td> {{variant_details['coordinates']['chromosome2']}} </td>
-            <td> {{variant_details['coordinates']['start2']}} </td>
-            <td> {{variant_details['coordinates']['stop2']}} </td>
+            <td> {{variant_details.id}} </td>
+            <td> {{variant_details.name}} </td>
+            <td> {{variant_details.ref_base}} </td>
+            <td> {{variant_details.var_base}} </td>
+            <td> {{variant_details.coordinates['chromosome']}} </td>
+            <td> {{variant_details.coordinates['start']}} </td>
+            <td> {{variant_details.coordinates['stop']}} </td>
+            <td> {{variant_details.coordinates['chromosome2']}} </td>
+            <td> {{variant_details.coordinates['start2']}} </td>
+            <td> {{variant_details.coordinates['stop2']}} </td>
             {% else %}
             <td> {{variant_details['id']}} </td>
             <td> "NA" </td>
@@ -66,7 +71,6 @@
             <td> "NA" </td>
             <td> "NA" </td>
             <td> "NA" </td>
-            {% endif %}
         </tr>
     {% endfor %}
     </table>
