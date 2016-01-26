@@ -7,6 +7,65 @@ import requests
 
 import civic_api_client
 
+class VariantDetails:
+    coordinates = {}
+    args = []
+
+    def __init__(self, args, variant_details):
+        "Constructor"
+        self.args = args
+        self.coordinates = None
+        self.name = None
+        self.id = None
+        if 'coordinates' in variant_details:
+            self.coordinates = variant_details['coordinates']
+        if 'name' in variant_details:
+            self.name = variant_details['name']
+        if 'id' in variant_details:
+            self.id = variant_details['id']
+
+    #Returns true if the variant does not have defined coordinates
+    def no_coords(self):
+        "Does the variant have the chr, start and stop defined"
+        return self.coordinates['chromosome'] == None or \
+               self.coordinates['start'] == None or \
+               self.coordinates['stop'] == None
+
+    #Returns true if the variant start > stop
+    def wrong_coords(self):
+        "Does the variant have start > stop"
+        return (self.coordinates['start'] > \
+               self.coordinates['stop']) or \
+               (self.coordinates['start2'] > \
+               self.coordinates['stop2'])
+
+    def satisfies_filters(self):
+        "Does the variant satisfy any one of the conditions"
+        satisfies = True
+        if self.coordinates:
+            if self.args.no_coords:
+                satisfies = satisfies and self.no_coords()
+            if self.args.wrong_coords:
+                satisfies = satisfies and self.wrong_coords()
+        else:
+            satisfies = False
+        return satisfies
+
+    def print1(self):
+        "Print variant details"
+        print   "ID: ", \
+                self.id, \
+                "Name: ", \
+                self.name, \
+                "Coordinate1: ", \
+                self.coordinates['chromosome'], \
+                self.coordinates['start'], \
+                self.coordinates['stop'], \
+                "Coordinate2: ", \
+                self.coordinates['chromosome2'], \
+                self.coordinates['start2'], \
+                self.coordinates['stop2']
+
 class VariantsLister:
     """Represent the variants in CIVIC"""
     #Flag to select variants with no co-ordinates
@@ -21,6 +80,7 @@ class VariantsLister:
     genes = []
     #Arguments to this tool
     args = []
+
     def __init__(self, args):
         "Constructor"
         self.args = args
@@ -34,6 +94,10 @@ class VariantsLister:
         parser.add_argument("--no-coords",
             action='store_true',
             help = "Print variants with no coordinates defined"
+        )
+        parser.add_argument("--wrong-coords",
+            action='store_true',
+            help = "Print variants where start > stop",
         )
         parser.add_argument("--max-gene-count",
             help = "Maximum number of genes to query from CIVIC",
@@ -71,34 +135,12 @@ class VariantsLister:
         variant_url = self.civic_url + 'variants/' + str(variant_id)
         return requests.get(variant_url).json()
 
-    def check_for_no_coords(self, variant_details):
-        "Does the variant have the chr, start and stop defined"
-        return variant_details['coordinates']['chromosome'] != None and \
-               variant_details['coordinates']['start'] != None and \
-               variant_details['coordinates']['stop'] != None
-
-    def satisfies_conditions(self, variant_details):
-        "Does the variant satisfy any one of the conditions"
-        satisfies = True
-        if 'coordinates' in variant_details:
-            if self.args.no_coords:
-                satisfies = satisfies and self.check_for_no_coords(variant_details)
-        return satisfies
-
     def print_variant_coordinates_screen(self):
         "Parse the details of the variants"
         for variant_details in self.all_variant_details:
-            if self.satisfies_conditions(variant_details):
-                print "ID: ", variant_details['id'], \
-                        "Name: ", variant_details['name'], \
-                        "Coordinate1: ", \
-                        variant_details['coordinates']['chromosome'],\
-                        variant_details['coordinates']['start'], \
-                        variant_details['coordinates']['stop'], \
-                        "Coordinate2: ", \
-                        variant_details['coordinates']['chromosome2'],\
-                        variant_details['coordinates']['start2'],\
-                        variant_details['coordinates']['stop2']
+            vd1 = VariantDetails(self.args, variant_details)
+            if vd1.satisfies_filters():
+                vd1.print1()
 
     def add_variant_detail(self, variant_id, variant_detail):
         "Append variant detail to list of variant details"
