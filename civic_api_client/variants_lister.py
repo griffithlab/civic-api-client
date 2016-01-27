@@ -20,6 +20,15 @@ class VariantDetails:
         self.ref_base = None
         self.var_base = None
         self.parse_variant_details(variant_details)
+        self.civic_url = self.define_civic_url(variant_details)
+
+    def define_civic_url(self, variant_details):
+        "Define the CIVIC URL for the variant"
+        if 'gene_id' not in variant_details:
+            variant_details['gene_id'] = "NA"
+        return "https://civic.genome.wustl.edu/#/events/genes/" + \
+               str(variant_details['gene_id']) + "/summary/variants/" + \
+               str(variant_details['id']) + "/summary#variant"
 
     def parse_variant_details(self, variant_details):
         "Parse variant details into class members"
@@ -106,7 +115,9 @@ class VariantDetails:
                 "Coordinate2: ", \
                 self.coordinates['chromosome2'], \
                 self.coordinates['start2'], \
-                self.coordinates['stop2']
+                self.coordinates['stop2'], \
+                "URL: ", \
+                self.civic_url
 
 class VariantsLister:
     """Represent the variants in CIVIC"""
