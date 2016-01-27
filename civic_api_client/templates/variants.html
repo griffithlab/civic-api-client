@@ -50,6 +50,7 @@
             <th>Chromosome2</th>
             <th>Start2</th>
             <th>Stop2</th>
+            <th>URL</th>
         </tr>
     {% for variant_details in filtered_variant_details %}
         <tr>
@@ -63,6 +64,7 @@
             <td> {{variant_details.coordinates['chromosome2']}} </td>
             <td> {{variant_details.coordinates['start2']}} </td>
             <td> {{variant_details.coordinates['stop2']}} </td>
+            <td> <a href={{variant_details.civic_url}}> {{variant_details.civic_url}} </a> </td>
             {% else %}
             <td> {{variant_details['id']}} </td>
             <td> "NA" </td>
