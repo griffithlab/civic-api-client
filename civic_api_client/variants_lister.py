@@ -199,12 +199,6 @@ class VariantsLister:
         for vd1 in self.filtered_variant_details:
             vd1.print1()
 
-    def add_variant_detail(self, variant_id, variant_detail):
-        "Append variant detail to list of variant details"
-        if 'id' not in variant_detail:
-            variant_detail['id'] = variant_id
-        self.all_variant_details.append(variant_detail)
-
     def print_variant_coordinates_web(self):
         "Publish to web page"
         app = Flask("civic_api_client")
@@ -221,7 +215,9 @@ class VariantsLister:
         variant_ids = self.get_variant_ids()
         for variant_id in variant_ids:
             variant_detail = self.get_variant_details(variant_id)
-            self.add_variant_detail(variant_id, variant_detail)
+            if 'id' not in variant_detail:
+                variant_detail['id'] = variant_id
+            self.all_variant_details.append(variant_detail)
         self.filter_variants()
         if self.args.web:
             self.print_variant_coordinates_web()
