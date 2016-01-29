@@ -157,12 +157,12 @@ class VariantsLister:
             help = "Print variants where ref/var base is not in [A,C,G,T,N,None]",
         )
         parser.add_argument("--max-gene-count",
-            help = "Maximum number of genes to query from CIVIC",
+            help = "Maximum number of genes to query from CIVIC [100,000]",
             type = int,
             default = 100000
         )
         parser.add_argument("--max-var-length",
-            help = "Maximum length of the variants to query from CIVIC",
+            help = "Maximum length of the variants to query from CIVIC [INF]",
             type = int,
         )
         parser.add_argument("--web",
