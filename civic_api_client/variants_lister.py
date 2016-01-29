@@ -170,8 +170,7 @@ class VariantsLister:
             help = "Publish variants to a webpage."
         )
         args = parser.parse_args(self.args)
-        if args.max_gene_count:
-            print "Max number of genes to query is ",args.max_gene_count
+        print "Max number of genes to query is ",args.max_gene_count
         if args.max_var_length:
             print "Max length of variants displayed is ",args.max_var_length
         return args
