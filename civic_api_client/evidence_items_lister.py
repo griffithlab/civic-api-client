@@ -50,10 +50,11 @@ class EvidenceItemsLister:
         args = parser.parse_args(self.args)
         return args
 
-    def check_evidence_items(self, variant_id, variant_detail, evidence_items):
-        "Check if evidence item is valid"
+    def check_doid(self, variant_id, variant_detail, evidence_items):
+        "Check if DOID is valid"
         for evidence_item in evidence_items:
             doid = evidence_item['disease']['doid']
+            #Query each DOID once
             if doid not in self.queried_doids:
                 self.queried_doids[doid] = 1
                 url = utils.disease_ontology_api_url() + \
@@ -95,5 +96,6 @@ class EvidenceItemsLister:
             variant_detail = vl1.get_variant_details(variant_id)
             if "evidence_items" in variant_detail:
                 evidence_items = variant_detail['evidence_items']
-                self.check_evidence_items(variant_id, variant_detail, evidence_items)
+                if self.args.doid:
+                    self.check_doid(variant_id, variant_detail, evidence_items)
         self.display_invalid()
