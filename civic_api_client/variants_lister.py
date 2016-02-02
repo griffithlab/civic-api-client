@@ -23,6 +23,7 @@ class VariantDetails:
         self.parse_variant_details(variant_details)
         self.civic_url = self.define_civic_url(variant_details)
 
+    @classmethod
     def define_civic_url(self, variant_details):
         "Define the CIVIC URL for the variant"
         if 'gene_id' not in variant_details:
