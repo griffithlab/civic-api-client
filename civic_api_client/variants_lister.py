@@ -6,6 +6,7 @@ import json
 import requests
 
 import civic_api_client
+import utils
 
 class VariantDetails:
     coordinates = {}
@@ -123,8 +124,6 @@ class VariantsLister:
     """Represent the variants in CIVIC"""
     #Flag to select variants with no co-ordinates
     no_coords = False
-    #URL to the CIVIC API
-    civic_url = 'https://civic.genome.wustl.edu/api/'
     #List of variant details
     all_variant_details = []
     #Details of variants satisfying filters
@@ -177,7 +176,7 @@ class VariantsLister:
 
     def get_civic_genes(self):
         "Get a list of genes from CIVIC"
-        genes_url = self.civic_url + 'genes?count=' + str(self.args.max_gene_count)
+        genes_url = utils.civic_api_url() + 'genes?count=' + str(self.args.max_gene_count)
         self.genes = sorted(requests.get(genes_url).json(), \
                             key=lambda key: int(key['id']))
 
@@ -194,7 +193,7 @@ class VariantsLister:
 
     def get_variant_details(self, variant_id):
         "Get the details for a variant given an ID"
-        variant_url = self.civic_url + 'variants/' + str(variant_id)
+        variant_url = utils.civic_api_url() + 'variants/' + str(variant_id)
         return requests.get(variant_url).json()
 
     def filter_variants(self):
