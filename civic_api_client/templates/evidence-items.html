@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CIVIC API client</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <script type="text/javascript" src="{{ url_for('static', filename='sorttable.js') }}"></script>
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='style1.css') }}"/>
+  </head>
+  <body>
+    <div class="variants_table">
+    <table class="sortable">
+        <tr>
+            <th>DOID</th>
+            <th>Variant ID</th>
+            <th>URL</th>
+        </tr>
+    {% for ei1 in invalid_eis %}
+        <tr>
+            <td> {{ei1.doid}} </td>
+            <td> {{ei1.variant_id}} </td>
+            <td> <a href={{ei1.variant_civic_url}}> {{ei1.variant_civic_url}} </a> </td>
+        </tr>
+    {% endfor %}
+    </table>
+    </div>
+    <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+  </body>
+</html>
