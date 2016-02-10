@@ -4,6 +4,7 @@ import argparse
 from flask import Flask, render_template
 import json
 import requests
+requests.packages.urllib3.disable_warnings()
 
 import civic_api_client
 import utils
@@ -178,7 +179,7 @@ class VariantsLister:
     def get_civic_genes(self):
         "Get a list of genes from CIVIC"
         genes_url = utils.civic_api_url() + 'genes?count=' + str(self.args.max_gene_count)
-        self.genes = sorted(requests.get(genes_url).json(), \
+        self.genes = sorted(requests.get(genes_url, verify = False).json(), \
                             key=lambda key: int(key['id']))
 
     def get_variant_ids(self):
@@ -195,7 +196,7 @@ class VariantsLister:
     def get_variant_details(self, variant_id):
         "Get the details for a variant given an ID"
         variant_url = utils.civic_api_url() + 'variants/' + str(variant_id)
-        return requests.get(variant_url).json()
+        return requests.get(variant_url, verify = False).json()
 
     def filter_variants(self):
         "Filter the variant details"

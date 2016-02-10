@@ -4,6 +4,7 @@ import argparse
 from flask import Flask, render_template, url_for
 import json
 import requests
+requests.packages.urllib3.disable_warnings()
 
 import civic_api_client
 import utils
@@ -59,7 +60,7 @@ class EvidenceItemsLister:
                 self.queried_doids[doid] = 1
                 url = utils.disease_ontology_api_url() + \
                         "metadata/DOID:" + str(doid)
-                r = requests.get(url)
+                r = requests.get(url, verify = False)
                 try:
                     r.raise_for_status()
                 except requests.exceptions.HTTPError:
