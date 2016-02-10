@@ -5,6 +5,7 @@ from flask import Flask, render_template, url_for
 import json
 import requests
 requests.packages.urllib3.disable_warnings()
+import sys
 
 import civic_api_client
 import utils
@@ -73,9 +74,10 @@ class EvidenceItemsLister:
         if self.args.web:
             self.display_invalid_web()
         else:
-            print "Printing invalid DOIDs"
+            sys.stderr.write("Printing invalid DOIDs\n")
+            print "\nDOID\tvariant_ID\tvariant_civic_url"
             for ei1 in self.invalid_eis:
-                print ei1.doid + "\t" + ei1.variant_id + "\t" + ei1.variant_civic_url + "\n"
+                print str(ei1.doid) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
 
     def display_invalid_web(self):
         "Publish to web page"
