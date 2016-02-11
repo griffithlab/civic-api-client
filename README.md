@@ -27,3 +27,10 @@ To list the evidence-items with an invalid DOID
 ```
 civic-api-client evidence-items-list --doid --max-gene-count 10 --web
 ```
+
+##Development
+To contribute to the code for this project, please fork the repo and submit a pull request
+
+To test your own changes (after editing code) you can rebuild the package as follows:
+pip install . --upgrade
+
