@@ -4,10 +4,12 @@ Example tools using the CIVIC API. Very basic docs on using the API is
 can be viewed [here](https://github.com/genome/civic-server/blob/deploy/db/schema.rb)
 
 ##Dependencies
+```
 brew install wget
 wget https://bootstrap.pypa.io/get-pip.py
 sudo python get-pip.py
 sudo pip install virtualenv
+```
 
 ##Setup
 Install like any other Python package, I like using the Virtualenv setup.
