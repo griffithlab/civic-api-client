@@ -240,5 +240,5 @@ class VariantsLister:
     def main(self):
         "Execution starts here"
         self.parse_args()
-        self.print_variant_coordinates()
+        self.create_filtered_variants_list()
         self.print_variant_coordinates()
