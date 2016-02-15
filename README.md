@@ -16,8 +16,14 @@ Install like any other Python package, I like using the Virtualenv setup.
 ``` bash
 git clone https://github.com/griffithlab/civic-api-client
 cd civic-api-client
-virtualenv myenv && source myenv/bin/activate
+virtualenv myenv
+source myenv/bin/activate
 pip install .
+```
+
+To deactivate the virtual environment,
+```
+deactivate
 ```
 
 ##Usage
@@ -27,7 +33,15 @@ civic-api-client action-items-web-view
 ```
 
 ##Development
-To contribute to the code for this project, please fork the repo and submit a pull request
+To contribute to the code for this project, please fork the repo and submit a pull request.
 
 To test your own changes (after editing code) you can rebuild the package as follows:
+```
 pip install . --upgrade
+```
+
+To install the latest changes
+```
+git pull 
+pip install . --upgrade
+```
