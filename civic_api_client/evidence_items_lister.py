@@ -50,10 +50,11 @@ class EvidenceItemsLister:
             help = "Publish evidence-items to a webpage."
         )
         args = parser.parse_args(self.args)
-        return args
+        print "Max number of genes to query is ",args.max_gene_count
+        self.args = args
 
     def check_doid(self, variant_id, variant_detail, evidence_items):
-        "Check if DOID is valid"
+        "Check if DOID is valid, if not add to list of invalids"
         for evidence_item in evidence_items:
             doid = evidence_item['disease']['doid']
             #Query each DOID once
@@ -69,7 +70,7 @@ class EvidenceItemsLister:
                                         VariantDetails.define_civic_url(variant_detail))
                     self.invalid_eis.append(ei1)
 
-    def display_invalid(self):
+    def display_invalid_eis(self):
         "Display the invalid DOIDs"
         if self.args.web:
             self.display_invalid_web()
@@ -79,7 +80,7 @@ class EvidenceItemsLister:
             for ei1 in self.invalid_eis:
                 print str(ei1.doid) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
 
-    def display_invalid_web(self):
+    def display_invalid_eis_web(self):
         "Publish to web page"
         app = Flask("civic_api_client")
         @app.route("/")
@@ -88,10 +89,8 @@ class EvidenceItemsLister:
                         invalid_eis = self.invalid_eis)
         app.run(debug=True)
 
-    def main(self):
-        "Execution starts here"
-        self.args = self.parse_args()
-        #Use the variantslister to get all the variants
+    def create_invalid_eis_list(self):
+        "Create the list of invalid evidence items"
         vl1 = VariantsLister(self.args)
         vl1.get_civic_genes()
         variant_ids = vl1.get_variant_ids()
@@ -100,5 +99,15 @@ class EvidenceItemsLister:
             if "evidence_items" in variant_detail:
                 evidence_items = variant_detail['evidence_items']
                 if self.args.doid:
+                    #If not valid, add to list of invalids
                     self.check_doid(variant_id, variant_detail, evidence_items)
-        self.display_invalid()
+
+    def get_invalid_eis(self):
+        "Return the list of invalid DOIDs"
+        return self.invalid_eis
+
+    def main(self):
+        "Execution starts here"
+        self.parse_args()
+        self.create_invalid_eiss_list()
+        self.display_invalid_eis()

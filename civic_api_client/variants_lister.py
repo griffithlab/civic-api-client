@@ -174,7 +174,7 @@ class VariantsLister:
         print "Max number of genes to query is ",args.max_gene_count
         if args.max_var_length:
             print "Max length of variants displayed is ",args.max_var_length
-        return args
+        self.args = args
 
     def get_civic_genes(self):
         "Get a list of genes from CIVIC"
@@ -205,10 +205,17 @@ class VariantsLister:
             if vd1.satisfies_filters():
                 self.filtered_variant_details.append(vd1)
 
-    def print_variant_coordinates_screen(self):
+    def get_filtered_variant_details(self):
+        "Return the list of filtered variant details"
+        return self.filtered_variant_details
+
+    def print_variant_coordinates(self):
         "Print the details of the variants to screen"
-        for vd1 in self.filtered_variant_details:
-            vd1.print1()
+        if self.args.web:
+            self.print_variant_coordinates_web()
+        else:
+            for vd1 in self.filtered_variant_details:
+                vd1.print1()
 
     def print_variant_coordinates_web(self):
         "Publish to web page"
@@ -219,9 +226,8 @@ class VariantsLister:
                         filtered_variant_details = self.filtered_variant_details)
         app.run(debug=True)
 
-    def main(self):
-        "Execution starts here"
-        self.args = self.parse_args()
+    def create_filtered_variants_list(self):
+        "Get variants from CIViC and filter them"
         self.get_civic_genes()
         variant_ids = self.get_variant_ids()
         for variant_id in variant_ids:
@@ -230,7 +236,9 @@ class VariantsLister:
                 variant_detail['id'] = variant_id
             self.all_variant_details.append(variant_detail)
         self.filter_variants()
-        if self.args.web:
-            self.print_variant_coordinates_web()
-        else:
-            self.print_variant_coordinates_screen()
+
+    def main(self):
+        "Execution starts here"
+        self.parse_args()
+        self.print_variant_coordinates()
+        self.print_variant_coordinates()
