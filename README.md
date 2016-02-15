@@ -31,4 +31,3 @@ To contribute to the code for this project, please fork the repo and submit a pu
 
 To test your own changes (after editing code) you can rebuild the package as follows:
 pip install . --upgrade
-
