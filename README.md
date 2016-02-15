@@ -27,7 +27,8 @@ deactivate
 ```
 
 ##Usage
-Very basic functionality for now
+Very basic functionality for now, this will pull up a web-page running on
+http://127.0.0.1:5000/ , this page will list the items that need work.
 ```
 civic-api-client action-items-web-view
 ```
