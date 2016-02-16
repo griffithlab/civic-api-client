@@ -12,12 +12,18 @@
     <div class="variants_table">
     <table class="sortable">
         <tr>
+            <th>ErrorType</th>
+            <th>Evidenc_id</th>
+            <th>Evidenc_type</th>
             <th>DOID</th>
             <th>Variant ID</th>
             <th>URL</th>
         </tr>
     {% for ei1 in invalid_eis %}
         <tr>
+            <td> {{ei1.error}} </td>
+            <td> {{ei1.evi_id}} </td>
+            <td> {{ei1.evi_type}} </td>
             <td> {{ei1.doid}} </td>
             <td> {{ei1.variant_id}} </td>
             <td> <a href={{ei1.variant_civic_url}}> {{ei1.variant_civic_url}} </a> </td>
