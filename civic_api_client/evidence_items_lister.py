@@ -130,12 +130,12 @@ class EvidenceItemsLister:
             sys.stderr.write("Printing invalid drug names\n")
             print "\nEvidence_ID\tvariant_ID\tvariant_civic_url"
             for ei1 in self.invalid_eis:
-                if ei1.error == "NA_drug_names":
+                if ei1.error == "Drug name is NA":
                     print str(ei1.evi_id) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
             sys.stderr.write("Printing predictive evidence without any drug\n")
             print "\nEvidence_ID\tvariant_ID\tvariant_civic_url"
             for ei1 in self.invalid_eis:
-                if ei1.error == "No drug":
+                if ei1.error == "Drug was not defined":
                     print str(ei1.evi_id) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
 
     def display_invalid_eis_web(self):
