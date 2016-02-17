@@ -105,14 +105,14 @@ class EvidenceItemsLister:
             if len(drugs) == 1 and drugs[0]['name'] == "N/A":
                 ei1 = EvidenceItems(variant_id, doid, \
                                     VariantDetails.define_civic_url(variant_detail), \
-                                    evidence_item['id'],"NA_drug_names",evidence_item['evidence_type'])
+                                    evidence_item['id'],"Drug name is NA",evidence_item['evidence_type'])
                 self.invalid_eis.append(ei1)
             #if evidence_item['evidence_type'] == "Predictive":
             # For predictive evidence, check if there's "drugs"
             if not drugs:
                 ei1 = EvidenceItems(variant_id, doid, \
                                     VariantDetails.define_civic_url(variant_detail), \
-                                    evidence_item['id'],"No drug",evidence_item['evidence_type'])
+                                    evidence_item['id'],"Drug was not defined",evidence_item['evidence_type'])
                 self.invalid_eis.append(ei1)
         return
 
@@ -123,16 +123,16 @@ class EvidenceItemsLister:
             self.display_invalid_eis_web()
         else:
             sys.stderr.write("Printing invalid DOIDs\n")
-            print "\nDOID\tvariant_ID\tvariant_civic_url"
+            print "\nEvidence_ID\tDOID\tvariant_ID\tvariant_civic_url"
             for ei1 in self.invalid_eis:
                 if ei1.error == "DOID":
                     print str(ei1.evi_id) + "\t" + str(ei1.doid) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
-            sys.stderr.write("Pringting invalid drug names\n")
+            sys.stderr.write("Printing invalid drug names\n")
             print "\nEvidence_ID\tvariant_ID\tvariant_civic_url"
             for ei1 in self.invalid_eis:
                 if ei1.error == "NA_drug_names":
                     print str(ei1.evi_id) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
-            sys.stderr.write("Pringting predictive evidence without any drug\n")
+            sys.stderr.write("Printing predictive evidence without any drug\n")
             print "\nEvidence_ID\tvariant_ID\tvariant_civic_url"
             for ei1 in self.invalid_eis:
                 if ei1.error == "No drug":
