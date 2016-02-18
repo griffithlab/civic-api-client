@@ -17,17 +17,22 @@ class EvidenceItems:
     disease = {}
     #list of drugs
     drugs = []
+    error = ""
 
     def __init__(self, variant_details, evidence_items, error_type):
         "Constructor"
+        self.error = str(error_type)
         self.variant_id = None
         self.variant_name = None
         self.gene_name = None
         self.evi_id = None
         self.evi_type = None
-        self.evidence_civic_url = define_evidence_url(variant_details,evidence_items)
+        self.doid = None
+        self.parse_variant_details(variant_details)
+        self.parse_evidence_details(evidence_items)
+        self.evidence_civic_url = self.define_evidence_url(variant_details,evidence_items)
         self.variant_civic_url = VariantDetails.define_civic_url(variant_details)
-        self.error = str(error_type)
+        
 
     @classmethod       
     def define_evidence_url(self, variant_details, evidence_items):
@@ -46,18 +51,20 @@ class EvidenceItems:
         if 'id' in variant_details:
             self.variant_id = variant_details['id']
         if 'entrez_name' in variant_details:
-            self.gene_name = variants['entrez_name']
+            self.gene_name = variant_details['entrez_name']
 
     def parse_evidence_details(self, evidence_items):
         "Parse evidence details into class members"
         if 'id' in evidence_items:
             self.evi_id = evidence_items['id']
-        if 'type' in evidence_items:
-            self.evi_type = evidence_items['type']
+        if 'evidence_type' in evidence_items:
+            self.evi_type = evidence_items['evidence_type']
         if 'drugs' in evidence_items:
             self.drugs = evidence_items['drugs']
         if 'disease' in evidence_items:
             self.disease = evidence_items['disease']
+        #if 'doid' in evidence_items['disease']:
+         #   self.doid = evidence_items['disease']['doid']
 
         
 
@@ -114,7 +121,7 @@ class EvidenceItemsLister:
                 try:
                     r.raise_for_status()
                 except requests.exceptions.HTTPError:
-                    ei1 = EvidenceItems(variant_detail,evidence_items,"DOID")
+                    ei1 = EvidenceItems(variant_detail,evidence_item,"DOID")
                     self.invalid_eis.append(ei1)
                     continue
                 self.valid_doids[doid] = 1
@@ -135,12 +142,12 @@ class EvidenceItemsLister:
                 continue
 
             if len(drugs) == 1 and drugs[0]['name'] == "N/A":
-                ei1 = EvidenceItems(variant_detail,evidence_items,"Drug name is NA")
+                ei1 = EvidenceItems(variant_detail,evidence_item,"Drug name is NA")
                 self.invalid_eis.append(ei1)
             #if evidence_item['evidence_type'] == "Predictive":
             # For predictive evidence, check if there's "drugs"
             if not drugs:
-                ei1 = EvidenceItems(variant_detail,evidence_items,"Drug was not defined")
+                ei1 = EvidenceItems(variant_detail,evidence_item,"Drug was not defined")
                 self.invalid_eis.append(ei1)
         return
 
@@ -150,24 +157,25 @@ class EvidenceItemsLister:
         if self.args.web:
             self.display_invalid_eis_web()
         else:
-            print   "Error_type: ", \
-                    self.error, \
-                    "Evidence_ID: ", \
-                    self.evi_id, \
-                    "Variant_id: ", \
-                    self.variant_id, \
-                    "Variant_name: ", \
-                    self.variant_name, \
-                    "Gene_name: ", \
-                    self.gene_name, \
-                    "Evidence_type: ", \
-                    self.evi_type, \
-                    "DOID: ", \
-                    self.disease['doid'], \
-                    "Evidence_URL: ", \
-                    self.evidence_civic_url, \
-                    "Variant_URL", \
-                    self.variant_civic_url
+            for ei1 in self.invalid_eis:
+                print   "Error_type: ", \
+                        ei1.error, \
+                        "Evidence_ID: ", \
+                        ei1.evi_id, \
+                        "Variant_id: ", \
+                        ei1.variant_id, \
+                        "Variant_name: ", \
+                        ei1.variant_name, \
+                        "Gene_name: ", \
+                        ei1.gene_name, \
+                        "Evidence_type: ", \
+                        ei1.evi_type, \
+                        "DOID: ", \
+                        ei1.disease['doid'], \
+                        "Evidence_URL: ", \
+                        ei1.evidence_civic_url, \
+                        "Variant_URL", \
+                        ei1.variant_civic_url
 
     def display_invalid_eis_web(self):
         "Publish to web page"
