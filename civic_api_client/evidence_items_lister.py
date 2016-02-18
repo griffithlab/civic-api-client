@@ -12,20 +12,54 @@ import utils
 from variants_lister import VariantsLister, VariantDetails
 
 class EvidenceItems:
-    variant_id = ""
-    doid = ""
-    variant_civic_url = ""
-    evi_id = ""
-    error = ""
+    
+    # Upstream infomation of variants and genes
+    disease = {}
+    #list of drugs
+    drugs = []
 
-    def __init__(self, variant_id, doid, variant_civic_url,evidence_id, error_type, evidence_type):
+    def __init__(self, variant_details, evidence_items, error_type):
         "Constructor"
-        self.variant_id = variant_id
-        self.doid = doid
-        self.variant_civic_url = variant_civic_url
-        self.evi_id = evidence_id
+        self.variant_id = None
+        self.variant_name = None
+        self.gene_name = None
+        self.evi_id = None
+        self.evi_type = None
+        self.evidence_civic_url = define_evidence_url(variant_details,evidence_items)
+        self.variant_civic_url = VariantDetails.define_civic_url(variant_details)
         self.error = str(error_type)
-        self.evi_type = evidence_type
+
+    @classmethod       
+    def define_evidence_url(self, variant_details, evidence_items):
+        "Define the CIVIC URL for the evidence"
+        if 'gene_id' not in variant_details:
+            variant_details['gene_id'] = "NA"
+        return "https://civic.genome.wustl.edu/#/events/genes/" + \
+               str(variant_details['gene_id']) + "/summary/variants/" + \
+               str(variant_details['id']) + "/summary/evidence/" + \
+               str(evidence_items['id']) + "/summary#evidence"
+
+    def parse_variant_details(self, variant_details):
+        "Parse variant details into class members"
+        if 'name' in variant_details:
+            self.variant_name = variant_details['name']
+        if 'id' in variant_details:
+            self.variant_id = variant_details['id']
+        if 'entrez_name' in variant_details:
+            self.gene_name = variants['entrez_name']
+
+    def parse_evidence_details(self, evidence_items):
+        "Parse evidence details into class members"
+        if 'id' in evidence_items:
+            self.evi_id = evidence_items['id']
+        if 'type' in evidence_items:
+            self.evi_type = evidence_items['type']
+        if 'drugs' in evidence_items:
+            self.drugs = evidence_items['drugs']
+        if 'disease' in evidence_items:
+            self.disease = evidence_items['disease']
+
+        
 
 class EvidenceItemsLister:
     """Represent the evidence-items in CIVIC"""
@@ -54,7 +88,7 @@ class EvidenceItemsLister:
             type = int,
             default = 100000
         )
-        parser.add_argument("--evi_type",
+        parser.add_argument("--evi-type",
             type = str,
             default = "All",
             help = "Speicify one evidence_type to check (default = All)"\
@@ -80,9 +114,7 @@ class EvidenceItemsLister:
                 try:
                     r.raise_for_status()
                 except requests.exceptions.HTTPError:
-                    ei1 = EvidenceItems(variant_id, doid, \
-                                        VariantDetails.define_civic_url(variant_detail), \
-                                        evidence_item['id'],"DOID",evidence_item['evidence_type'])
+                    ei1 = EvidenceItems(variant_detail,evidence_items,"DOID")
                     self.invalid_eis.append(ei1)
                     continue
                 self.valid_doids[doid] = 1
@@ -103,16 +135,12 @@ class EvidenceItemsLister:
                 continue
 
             if len(drugs) == 1 and drugs[0]['name'] == "N/A":
-                ei1 = EvidenceItems(variant_id, doid, \
-                                    VariantDetails.define_civic_url(variant_detail), \
-                                    evidence_item['id'],"Drug name is NA",evidence_item['evidence_type'])
+                ei1 = EvidenceItems(variant_detail,evidence_items,"Drug name is NA")
                 self.invalid_eis.append(ei1)
             #if evidence_item['evidence_type'] == "Predictive":
             # For predictive evidence, check if there's "drugs"
             if not drugs:
-                ei1 = EvidenceItems(variant_id, doid, \
-                                    VariantDetails.define_civic_url(variant_detail), \
-                                    evidence_item['id'],"Drug was not defined",evidence_item['evidence_type'])
+                ei1 = EvidenceItems(variant_detail,evidence_items,"Drug was not defined")
                 self.invalid_eis.append(ei1)
         return
 
@@ -122,21 +150,24 @@ class EvidenceItemsLister:
         if self.args.web:
             self.display_invalid_eis_web()
         else:
-            sys.stderr.write("Printing invalid DOIDs\n")
-            print "\nEvidence_ID\tDOID\tvariant_ID\tvariant_civic_url"
-            for ei1 in self.invalid_eis:
-                if ei1.error == "DOID":
-                    print str(ei1.evi_id) + "\t" + str(ei1.doid) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
-            sys.stderr.write("Printing invalid drug names\n")
-            print "\nEvidence_ID\tvariant_ID\tvariant_civic_url"
-            for ei1 in self.invalid_eis:
-                if ei1.error == "Drug name is NA":
-                    print str(ei1.evi_id) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
-            sys.stderr.write("Printing predictive evidence without any drug\n")
-            print "\nEvidence_ID\tvariant_ID\tvariant_civic_url"
-            for ei1 in self.invalid_eis:
-                if ei1.error == "Drug was not defined":
-                    print str(ei1.evi_id) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
+            print   "Error_type: ", \
+                    self.error, \
+                    "Evidence_ID: ", \
+                    self.evi_id, \
+                    "Variant_id: ", \
+                    self.variant_id, \
+                    "Variant_name: ", \
+                    self.variant_name, \
+                    "Gene_name: ", \
+                    self.gene_name, \
+                    "Evidence_type: ", \
+                    self.evi_type, \
+                    "DOID: ", \
+                    self.disease['doid'], \
+                    "Evidence_URL: ", \
+                    self.evidence_civic_url, \
+                    "Variant_URL", \
+                    self.variant_civic_url
 
     def display_invalid_eis_web(self):
         "Publish to web page"

@@ -12,20 +12,26 @@
     <div class="variants_table">
     <table class="sortable">
         <tr>
-            <th>ErrorType</th>
-            <th>Evidence_id</th>
-            <th>Evidenc_type</th>
+            <th>Error_type</th>
+            <th>Evidence_ID</th>
+            <th>Evidence_type</th>
+            <th>Evidence_URL</th>
             <th>DOID</th>
-            <th>Variant ID</th>
-            <th>URL</th>
+            <th>Variant_ID</th>
+            <th>Variant_name</th>
+            <th>Gene_name</th>
+            <th>Variant_URL</th>
         </tr>
     {% for ei1 in invalid_eis %}
         <tr>
             <td> {{ei1.error}} </td>
             <td> {{ei1.evi_id}} </td>
             <td> {{ei1.evi_type}} </td>
-            <td> {{ei1.doid}} </td>
+            <td> <a href={{ei1.evidence_civic_url}}>{{eid.evidence_civic_url}} </td>
+            <td> {{ei1.disease['doid']}} </td>
             <td> {{ei1.variant_id}} </td>
+            <td> {{ei1.variant_name}} </td>
+            <td> {{eid.gene_name}} </td>
             <td> <a href={{ei1.variant_civic_url}}> {{ei1.variant_civic_url}} </a> </td>
         </tr>
     {% endfor %}
