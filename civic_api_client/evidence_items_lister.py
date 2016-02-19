@@ -112,6 +112,8 @@ class EvidenceItemsLister:
     def check_doid(self, variant_id, variant_detail, evidence_items):
         "Check if DOID is valid, if not add to list of invalids"
         for evidence_item in evidence_items:
+            if evidence_items['status'] == 'rejected':
+                continue
             doid = evidence_item['disease']['doid']
             #Query each DOID once
             if doid not in self.valid_doids:
@@ -131,6 +133,8 @@ class EvidenceItemsLister:
     def check_drug_for_pre(self, variant_id, variant_detail,evidence_items):
         "Check if predictive evidence items have drug information"
         for evidence_item in evidence_items:
+            if evidence_items['status'] == 'rejected':
+                continue
             doid = evidence_item['disease']['doid']
             #For the same output format add doid
             drugs = evidence_item['drugs']
@@ -194,7 +198,7 @@ class EvidenceItemsLister:
         for variant_id in variant_ids:
             variant_detail = vl1.get_variant_details(variant_id)
             if "evidence_items" in variant_detail:
-                evidence_items = variant_detail['evidence_items']
+                evidence_items = variant_detail['evidence_items']   
                 if self.args.doid:
                     #If not valid, add to list of invalids
                     self.check_doid(variant_id, variant_detail, evidence_items)
