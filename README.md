@@ -45,7 +45,7 @@ Specify evidence types(Prognostic,for example):
 civic-api-client evidence-items-list --drug --evi-type Predictive
 
 Specify evidence types and print on web page(Predictive,for example):
-civic-api-client evidence-items-list --drug --evi-type Predictive ¡ªweb
+civic-api-client evidence-items-list --drug --evi-type Predictive --web
 
 
 ##Development
