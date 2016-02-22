@@ -112,7 +112,7 @@ class EvidenceItemsLister:
     def check_doid(self, variant_id, variant_detail, evidence_items):
         "Check if DOID is valid, if not add to list of invalids"
         for evidence_item in evidence_items:
-            if evidence_items['status'] == 'rejected':
+            if evidence_item['status'] == 'rejected':
                 continue
             doid = evidence_item['disease']['doid']
             #Query each DOID once
@@ -133,7 +133,7 @@ class EvidenceItemsLister:
     def check_drug_for_pre(self, variant_id, variant_detail,evidence_items):
         "Check if predictive evidence items have drug information"
         for evidence_item in evidence_items:
-            if evidence_items['status'] == 'rejected':
+            if evidence_item['status'] == 'rejected':
                 continue
             doid = evidence_item['disease']['doid']
             #For the same output format add doid
