@@ -83,23 +83,23 @@ class EvidenceItemsLister:
         )
         parser.add_argument("--doid",
             action='store_true',
-            help = "Print evidence-items with improper DOID.(not defined"\
-                    "on disease-ontology.org)"
+            help = "Print evidence-items with improper DOID (not defined"\
+                    " on disease-ontology.org)."
         )
         parser.add_argument("--drug",
             action='store_true',
             help = "Print predictive evidence-items without drug defined."
         )
         parser.add_argument("--max-gene-count",
-            help = "Maximum number of genes to query from CIVIC [100,000]",
+            help = "Maximum number of genes to query from CIVIC [100,000].",
             type = int,
             default = 100000
         )
         parser.add_argument("--evi-type",
             type = str,
             default = "All",
-            help = "Speicify one evidence_type to check (default = All)"\
-                    "Chose from Predictive,Diagnostic,Prognostic or All"
+            help = "Specify one evidence_type to check (default = All)."\
+                    " Chose from Predictive,Diagnostic,Prognostic or All."
         )
         parser.add_argument("--web",
             action='store_true',
@@ -129,7 +129,6 @@ class EvidenceItemsLister:
                 self.valid_doids[doid] = 1
 
 
-    # New function added by Lei
     def check_drug_for_pre(self, variant_id, variant_detail,evidence_items):
         "Check if predictive evidence items have drug information"
         for evidence_item in evidence_items:
