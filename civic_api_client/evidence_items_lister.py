@@ -12,19 +12,65 @@ import utils
 from variants_lister import VariantsLister, VariantDetails
 
 class EvidenceItems:
-    variant_id = ""
-    doid = ""
-    variant_civic_url = ""
+    
+    # Upstream infomation of variants and genes
+    disease = {}
+    #list of drugs
+    drugs = []
+    error = ""
 
-    def __init__(self, variant_id, doid, variant_civic_url):
+    def __init__(self, variant_details, evidence_items, error_type):
         "Constructor"
-        self.variant_id = variant_id
-        self.doid = doid
-        self.variant_civic_url = variant_civic_url
+        self.error = str(error_type)
+        self.variant_id = None
+        self.variant_name = None
+        self.gene_name = None
+        self.evi_id = None
+        self.evi_type = None
+        self.doid = None
+        self.parse_variant_details(variant_details)
+        self.parse_evidence_details(evidence_items)
+        self.evidence_civic_url = self.define_evidence_url(variant_details,evidence_items)
+        self.variant_civic_url = VariantDetails.define_civic_url(variant_details)
+        
+
+    @classmethod       
+    def define_evidence_url(self, variant_details, evidence_items):
+        "Define the CIVIC URL for the evidence"
+        if 'gene_id' not in variant_details:
+            variant_details['gene_id'] = "NA"
+        return "https://civic.genome.wustl.edu/#/events/genes/" + \
+               str(variant_details['gene_id']) + "/summary/variants/" + \
+               str(variant_details['id']) + "/summary/evidence/" + \
+               str(evidence_items['id']) + "/summary#evidence"
+
+    def parse_variant_details(self, variant_details):
+        "Parse variant details into class members"
+        if 'name' in variant_details:
+            self.variant_name = variant_details['name']
+        if 'id' in variant_details:
+            self.variant_id = variant_details['id']
+        if 'entrez_name' in variant_details:
+            self.gene_name = variant_details['entrez_name']
+
+    def parse_evidence_details(self, evidence_items):
+        "Parse evidence details into class members"
+        if 'id' in evidence_items:
+            self.evi_id = evidence_items['id']
+        if 'evidence_type' in evidence_items:
+            self.evi_type = evidence_items['evidence_type']
+        if 'drugs' in evidence_items:
+            self.drugs = evidence_items['drugs']
+        if 'disease' in evidence_items:
+            self.disease = evidence_items['disease']
+        #if 'doid' in evidence_items['disease']:
+         #   self.doid = evidence_items['disease']['doid']
+
+        
 
 class EvidenceItemsLister:
     """Represent the evidence-items in CIVIC"""
-    queried_doids = {}
+    valid_doids = {}
     invalid_eis = []
     def __init__(self, args):
         "Constructor"
@@ -40,10 +86,20 @@ class EvidenceItemsLister:
             help = "Print evidence-items with improper DOID.(not defined"\
                     "on disease-ontology.org)"
         )
+        parser.add_argument("--drug",
+            action='store_true',
+            help = "Print predictive evidence-items without drug defined."
+        )
         parser.add_argument("--max-gene-count",
             help = "Maximum number of genes to query from CIVIC [100,000]",
             type = int,
             default = 100000
+        )
+        parser.add_argument("--evi-type",
+            type = str,
+            default = "All",
+            help = "Speicify one evidence_type to check (default = All)"\
+                    "Chose from Predictive,Diagnostic,Prognostic or All"
         )
         parser.add_argument("--web",
             action='store_true',
@@ -56,29 +112,74 @@ class EvidenceItemsLister:
     def check_doid(self, variant_id, variant_detail, evidence_items):
         "Check if DOID is valid, if not add to list of invalids"
         for evidence_item in evidence_items:
+            if evidence_item['status'] == 'rejected':
+                continue
             doid = evidence_item['disease']['doid']
             #Query each DOID once
-            if doid not in self.queried_doids:
-                self.queried_doids[doid] = 1
+            if doid not in self.valid_doids:
                 url = utils.disease_ontology_api_url() + \
                         "metadata/DOID:" + str(doid)
                 r = requests.get(url, verify = False)
                 try:
                     r.raise_for_status()
                 except requests.exceptions.HTTPError:
-                    ei1 = EvidenceItems(variant_id, doid, \
-                                        VariantDetails.define_civic_url(variant_detail))
+                    ei1 = EvidenceItems(variant_detail,evidence_item,"DOID")
                     self.invalid_eis.append(ei1)
+                    continue
+                self.valid_doids[doid] = 1
+
+
+    # New function added by Lei
+    def check_drug_for_pre(self, variant_id, variant_detail,evidence_items):
+        "Check if predictive evidence items have drug information"
+        for evidence_item in evidence_items:
+            if evidence_item['status'] == 'rejected':
+                continue
+            doid = evidence_item['disease']['doid']
+            #For the same output format add doid
+            drugs = evidence_item['drugs']
+            evi_type_to_check = 0
+
+            if self.args.evi_type == evidence_item['evidence_type'] or self.args.evi_type == "All":
+                evi_type_to_check = 1
+            if evi_type_to_check == 0:
+                continue
+
+            if len(drugs) == 1 and drugs[0]['name'] == "N/A":
+                ei1 = EvidenceItems(variant_detail,evidence_item,"Drug name is NA")
+                self.invalid_eis.append(ei1)
+            #if evidence_item['evidence_type'] == "Predictive":
+            # For predictive evidence, check if there's "drugs"
+            if not drugs:
+                ei1 = EvidenceItems(variant_detail,evidence_item,"Drug was not defined")
+                self.invalid_eis.append(ei1)
+        return
+
 
     def display_invalid_eis(self):
-        "Display the invalid DOIDs"
+        "Display the invalid evidence_items"
         if self.args.web:
-            self.display_invalid_web()
+            self.display_invalid_eis_web()
         else:
-            sys.stderr.write("Printing invalid DOIDs\n")
-            print "\nDOID\tvariant_ID\tvariant_civic_url"
             for ei1 in self.invalid_eis:
-                print str(ei1.doid) + "\t" + str(ei1.variant_id) + "\t" + ei1.variant_civic_url + "\n"
+                print   "Error_type: ", \
+                        ei1.error, \
+                        "Evidence_ID: ", \
+                        ei1.evi_id, \
+                        "Variant_id: ", \
+                        ei1.variant_id, \
+                        "Variant_name: ", \
+                        ei1.variant_name, \
+                        "Gene_name: ", \
+                        ei1.gene_name, \
+                        "Evidence_type: ", \
+                        ei1.evi_type, \
+                        "DOID: ", \
+                        ei1.disease['doid'], \
+                        "Evidence_URL: ", \
+                        ei1.evidence_civic_url, \
+                        "Variant_URL", \
+                        ei1.variant_civic_url
 
     def display_invalid_eis_web(self):
         "Publish to web page"
@@ -97,10 +198,13 @@ class EvidenceItemsLister:
         for variant_id in variant_ids:
             variant_detail = vl1.get_variant_details(variant_id)
             if "evidence_items" in variant_detail:
-                evidence_items = variant_detail['evidence_items']
+                evidence_items = variant_detail['evidence_items']   
                 if self.args.doid:
                     #If not valid, add to list of invalids
                     self.check_doid(variant_id, variant_detail, evidence_items)
+                if self.args.drug:
+                    #If drug doesn't exist, add to list of invalids
+                    self.check_drug_for_pre(variant_id, variant_detail,evidence_items)
 
     def get_invalid_eis(self):
         "Return the list of invalid DOIDs"
@@ -109,5 +213,5 @@ class EvidenceItemsLister:
     def main(self):
         "Execution starts here"
         self.parse_args()
-        self.create_invalid_eiss_list()
+        self.create_invalid_eis_list()
         self.display_invalid_eis()

@@ -19,10 +19,12 @@ class VariantDetails:
         self.coordinates = None
         self.name = None
         self.id = None
+        self.gene_name = None
         self.ref_base = None
         self.var_base = None
         self.parse_variant_details(variant_details)
         self.civic_url = self.define_civic_url(variant_details)
+        self.gene_id = None
 
     @classmethod
     def define_civic_url(self, variant_details):
@@ -41,10 +43,14 @@ class VariantDetails:
             self.name = variant_details['name']
         if 'id' in variant_details:
             self.id = variant_details['id']
+        if 'entrez_name' in variant_details:
+            self.gene_name = variants['entrez_name']
         if 'reference_bases' in variant_details:
             self.ref_base = variant_details['reference_bases']
         if 'variant_bases' in variant_details:
             self.var_base = variant_details['variant_bases']
+        if 'gene_id' in variant_details:
+            self.gene_id = variant_details['gene_id']
 
     #Returns true if the variant does not have defined coordinates
     def no_coords(self):

@@ -33,6 +33,21 @@ http://127.0.0.1:5000/ , this page will list the items that need work.
 civic-api-client action-items-web-view
 ```
 
+Here's the usage for drug search:
+
+Print out on screen(All types):
+civic-api-client evidence-items-list --drug 
+
+Print out on web(All types):
+civic-api-client evidence-items-list --drug --web
+
+Specify evidence types(Prognostic,for example):
+civic-api-client evidence-items-list --drug --evi-type Predictive
+
+Specify evidence types and print on web page(Predictive,for example):
+civic-api-client evidence-items-list --drug --evi-type Predictive --web
+
+
 ##Development
 To contribute to the code for this project, please fork the repo and submit a pull request.
 
