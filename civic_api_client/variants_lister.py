@@ -25,6 +25,7 @@ class VariantDetails:
         self.parse_variant_details(variant_details)
         self.civic_url = self.define_civic_url(variant_details)
         self.gene_id = None
+        self.error_type = None
 
     @classmethod
     def define_civic_url(self, variant_details):
@@ -44,43 +45,68 @@ class VariantDetails:
         if 'id' in variant_details:
             self.id = variant_details['id']
         if 'entrez_name' in variant_details:
-            self.gene_name = variants['entrez_name']
-        if 'reference_bases' in variant_details:
-            self.ref_base = variant_details['reference_bases']
-        if 'variant_bases' in variant_details:
-            self.var_base = variant_details['variant_bases']
+            self.gene_name = variant_details['entrez_name']
+        if 'reference_bases' in variant_details['coordinates']:
+            self.ref_base = variant_details['coordinates']['reference_bases']
+        if 'variant_bases' in variant_details['coordinates']:
+            self.var_base = variant_details['coordinates']['variant_bases']
         if 'gene_id' in variant_details:
             self.gene_id = variant_details['gene_id']
 
     #Returns true if the variant does not have defined coordinates
     def no_coords(self):
         "Does the variant have the chr, start and stop defined"
-        return self.coordinates['chromosome'] == None or \
-               self.coordinates['start'] == None or \
-               self.coordinates['stop'] == None
+        if self.error_type != None:
+            return True
+        coord = self.coordinates['chromosome'] or \
+                self.coordinates['start'] or \
+                self.coordinates['stop']
+        if not coord and self.error_type == None:   
+            self.error_type = "No coordinate"
+        return coord
 
     #Returns true if the variant start > stop
     def wrong_coords(self):
         "Does the variant have start > stop"
+        rval = False
+        if self.error_type != None:
+            return True
+
         try:
             rval = (int(self.coordinates['start']) > \
-             int(self.coordinates['stop'])) or \
-            (int(self.coordinates['start2']) > \
-             int(self.coordinates['stop2']))
+             int(self.coordinates['stop'])) 
         except ValueError:
+            self.error_type = "Wrong coordinates"
             return True
+
+        if self.coordinates['start2'] and \
+        self.coordinates['stop2'] and \
+        not rval:
+            rval = (int(self.coordinates['start2']) > \
+             int(self.coordinates['stop2']))
+
+        if rval and self.error_type == None:
+            self.error_type = "Wrong coordinates"
+
         return rval
 
     #Returns true if ref/variant base not in [A,C,G,T,N]
     def wrong_base(self):
         "Are both the ref/variant base in [A,C,G,T,N,None]"
+        if self.error_type != None:
+            return True
         allowed_nucs = ['A', 'C', 'G', 'T', 'N']
+        if (self.ref_base not in allowed_nucs or self.var_base not in allowed_nucs):
+            if self.error_type == None:
+                self.error_type = "Wrong base"
         return (self.ref_base not in allowed_nucs or
                 self.var_base not in allowed_nucs)
 
     #Returns true if variant length within limit or coordinates undefined
     def max_var_length(self):
         "Does the variant have start - stop <= max_var_length"
+        if self.error_type != None:
+            return True
         if self.coordinates and self.coordinates['stop'] and \
            self.coordinates['start']:
             try:
@@ -88,23 +114,43 @@ class VariantDetails:
                         int(self.coordinates['start']) < \
                         self.args.max_var_length
             except:
+                if self.error_type == None:
+                    self.error_type = "Max variant length"
                 return True
+
+            if rval and self.error_type == None:
+                self.error_type = "Max variant length"
+
             return rval
 
     def satisfies_filters(self):
         "Does the variant satisfy any one of the conditions"
         satisfies = True
+
         if self.coordinates:
+            nocoodrs = self.no_coords() 
+            wrongcoords = self.wrong_coords()
+            wrongbase = self.wrong_base()  
+            maxvarlength = self.max_var_length()
+
+            if self.error_type == None:
+                return False
+
             if self.args.no_coords:
-                satisfies = self.no_coords()
-            if not satisfies and self.args.wrong_coords:
-                satisfies = self.wrong_coords()
-            if not satisfies and self.args.wrong_base:
-                satisfies = self.wrong_base()
+                if self.error_type == "No coordinate":
+                    return True
+            if self.args.wrong_coords:
+                if self.error_type == "Wrong coordinates":
+                    return True
+            if self.args.wrong_base:
+                if self.error_type == "Wrong base":
+                    return True
             if self.args.max_var_length:
-                satisfies = satisfies and self.max_var_length()
+                if self.error_type == "Max variant length":
+                    return True
         else:
             satisfies = False
+
         return satisfies
 
     def print1(self):
@@ -113,6 +159,10 @@ class VariantDetails:
                 self.id, \
                 "Name: ", \
                 self.name, \
+                "Gene name: ", \
+                self.gene_name, \
+                "Error type: ", \
+                self.error_type, \
                 "Ref base: ", \
                 self.ref_base, \
                 "Var base: ", \
