@@ -105,8 +105,7 @@ class VariantDetails:
     #Returns true if variant length within limit or coordinates undefined
     def max_var_length(self):
         "Does the variant have start - stop <= max_var_length"
-        if self.error_type != None:
-            return True
+        rval = False
         if self.coordinates and self.coordinates['stop'] and \
            self.coordinates['start']:
             try:
@@ -114,12 +113,7 @@ class VariantDetails:
                         int(self.coordinates['start']) < \
                         self.args.max_var_length
             except:
-                if self.error_type == None:
-                    self.error_type = "Max variant length"
-                return True
-
-            if rval and self.error_type == None:
-                self.error_type = "Max variant length"
+                return False
 
             return rval
 
@@ -128,11 +122,15 @@ class VariantDetails:
         satisfies = True
 
         if self.coordinates:
+            
+            # Variant length doesn't fit
+            maxvarlength = self.max_var_length()
+            if not maxvarlength: 
+                return False;
+
             nocoodrs = self.no_coords() 
             wrongcoords = self.wrong_coords()
             wrongbase = self.wrong_base()  
-            maxvarlength = self.max_var_length()
-
             if self.error_type == None:
                 return False
 
@@ -144,9 +142,6 @@ class VariantDetails:
                     return True
             if self.args.wrong_base:
                 if self.error_type == "Wrong base":
-                    return True
-            if self.args.max_var_length:
-                if self.error_type == "Max variant length":
                     return True
         else:
             satisfies = False
