@@ -40,16 +40,16 @@ class VariantDetails:
         "Parse variant details into class members"
         if 'coordinates' in variant_details:
             self.coordinates = variant_details['coordinates']
+            if 'reference_bases' in variant_details['coordinates']:
+                self.ref_base = variant_details['coordinates']['reference_bases']
+            if 'variant_bases' in variant_details['coordinates']:
+                self.var_base = variant_details['coordinates']['variant_bases']
         if 'name' in variant_details:
             self.name = variant_details['name']
         if 'id' in variant_details:
             self.id = variant_details['id']
         if 'entrez_name' in variant_details:
             self.gene_name = variant_details['entrez_name']
-        if 'reference_bases' in variant_details['coordinates']:
-            self.ref_base = variant_details['coordinates']['reference_bases']
-        if 'variant_bases' in variant_details['coordinates']:
-            self.var_base = variant_details['coordinates']['variant_bases']
         if 'gene_id' in variant_details:
             self.gene_id = variant_details['gene_id']
 
