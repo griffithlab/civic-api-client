@@ -138,12 +138,18 @@ class VariantDetails:
             if self.args.no_coords:
                 if self.error_type == "No coordinate":
                     return True
+                else:
+                    return False
             if self.args.wrong_coords:
                 if self.error_type == "Wrong coordinates":
                     return True
+                else:
+                    return False
             if self.args.wrong_base:
                 if self.error_type == "Wrong base":
                     return True
+                else:
+                    return False
         else:
             satisfies = False
 
