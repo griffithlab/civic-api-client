@@ -124,9 +124,10 @@ class VariantDetails:
         if self.coordinates:
             
             # Variant length doesn't fit
-            maxvarlength = self.max_var_length()
-            if not maxvarlength: 
-                return False;
+            if self.args.max_var_length:
+                maxvarlength = self.max_var_length()
+                if not maxvarlength: 
+                    return False;
 
             nocoodrs = self.no_coords() 
             wrongcoords = self.wrong_coords()

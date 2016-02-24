@@ -204,6 +204,10 @@ class EvidenceItemsLister:
                 if self.args.drug:
                     #If drug doesn't exist, add to list of invalids
                     self.check_drug_for_pre(variant_id, variant_detail,evidence_items)
+                # if neither of the flags were specified, do both checks
+                if not (self.args.doid or self.args.drug):
+                    self.check_doid(variant_id, variant_detail, evidence_items)
+                    self.check_drug_for_pre(variant_id, variant_detail,evidence_items)
 
     def get_invalid_eis(self):
         "Return the list of invalid DOIDs"
