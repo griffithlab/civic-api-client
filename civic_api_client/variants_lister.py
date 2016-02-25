@@ -44,6 +44,7 @@ class VariantDetails:
                 self.ref_base = variant_details['coordinates']['reference_bases']
             if 'variant_bases' in variant_details['coordinates']:
                 self.var_base = variant_details['coordinates']['variant_bases']
+        
         if 'name' in variant_details:
             self.name = variant_details['name']
         if 'id' in variant_details:
@@ -117,6 +118,16 @@ class VariantDetails:
 
             return rval
 
+
+    def no_rep_trans(self):
+        "Check if there's missing representative transcript"
+        if self.error_type != None:
+            return True
+        if self.coordinates['representative_transcript'] == None:
+            self.error_type = "No representative transcript"
+            return True
+        return False
+
     def satisfies_filters(self):
         "Does the variant satisfy any one of the conditions"
         satisfies = True
@@ -129,28 +140,36 @@ class VariantDetails:
                 if not maxvarlength: 
                     return False;
 
-            nocoodrs = self.no_coords() 
-            wrongcoords = self.wrong_coords()
-            wrongbase = self.wrong_base()  
+            self.no_coords() 
+            self.wrong_coords()
+            self.wrong_base()
+            self.no_rep_trans()
+
             if self.error_type == None:
                 return False
 
             if self.args.no_coords:
                 if self.error_type == "No coordinate":
                     return True
-                else:
-                    return False
+
             if self.args.wrong_coords:
                 if self.error_type == "Wrong coordinates":
                     return True
-                else:
-                    return False
+                
             if self.args.wrong_base:
                 if self.error_type == "Wrong base":
                     return True
-                else:
-                    return False
+                
+            if self.args.no_rep_trans:
+                if self.error_type == "No representative transcript":
+                    return True              
         else:
+            satisfies = False
+
+        if self.args.no_coords or \
+        self.args.wrong_coords or \
+        self.args.wrong_base or \
+        self.args.no_rep_trans:
             satisfies = False
 
         return satisfies
@@ -173,6 +192,7 @@ class VariantDetails:
                 self.coordinates['chromosome'], \
                 self.coordinates['start'], \
                 self.coordinates['stop'], \
+                self.coordinates['representative_transcript'], \
                 "Coordinate2: ", \
                 self.coordinates['chromosome2'], \
                 self.coordinates['start2'], \
@@ -214,6 +234,10 @@ class VariantsLister:
         parser.add_argument("--wrong-base",
             action='store_true',
             help = "Print variants where ref/var base is not in [A,C,G,T,N,None]",
+        )
+        parser.add_argument("--no-rep-trans",
+            action='store_true',
+            help = "Print variants with no representative transcript",
         )
         parser.add_argument("--max-gene-count",
             help = "Maximum number of genes to query from CIVIC [100,000]",
