@@ -25,7 +25,8 @@ class VariantDetails:
         self.parse_variant_details(variant_details)
         self.civic_url = self.define_civic_url(variant_details)
         self.gene_id = None
-        self.error_type = None
+        self.error_type = []
+        self.error_str = ""
 
     @classmethod
     def define_civic_url(self, variant_details):
@@ -54,30 +55,34 @@ class VariantDetails:
         if 'gene_id' in variant_details:
             self.gene_id = variant_details['gene_id']
 
+    # Make a string of errors for website output
+    def make_error_string(self):
+        for error in self.error_type:
+            self.error_str += error+'/'
+
     #Returns true if the variant does not have defined coordinates
     def no_coords(self):
         "Does the variant have the chr, start and stop defined"
-        if self.error_type != None:
-            return True
+    
         coord = self.coordinates['chromosome'] or \
                 self.coordinates['start'] or \
                 self.coordinates['stop']
-        if not coord and self.error_type == None:
-            self.error_type = "No coordinate"
+        if not coord:
+            self.error_type.append("No coordinate")
         return coord
 
     #Returns true if the variant start > stop
     def wrong_coords(self):
         "Does the variant have start > stop"
         rval = False
-        if self.error_type != None:
-            return True
+        if "No coordinate" in self.error_type: 
+            return False
 
         try:
             rval = (int(self.coordinates['start']) > \
              int(self.coordinates['stop']))
         except ValueError:
-            self.error_type = "Wrong coordinates"
+            self.error_type.append("Wrong coordinates")
             return True
 
         if self.coordinates['start2'] and \
@@ -86,20 +91,19 @@ class VariantDetails:
             rval = (int(self.coordinates['start2']) > \
              int(self.coordinates['stop2']))
 
-        if rval and self.error_type == None:
-            self.error_type = "Wrong coordinates"
+        if rval:
+            self.error_type.append("Wrong coordinates")
 
         return rval
 
     #Returns true if ref/variant base not in [A,C,G,T,N]
     def wrong_base(self):
         "Are both the ref/variant base in [A,C,G,T,N,None]"
-        if self.error_type != None:
-            return True
+
         allowed_nucs = ['A', 'C', 'G', 'T', 'N']
         if (self.ref_base not in allowed_nucs or self.var_base not in allowed_nucs):
-            if self.error_type == None:
-                self.error_type = "Wrong base"
+            self.error_type.append("Wrong base")
+
         return (self.ref_base not in allowed_nucs or
                 self.var_base not in allowed_nucs)
 
@@ -121,10 +125,9 @@ class VariantDetails:
 
     def no_rep_trans(self):
         "Check if there's missing representative transcript"
-        if self.error_type != None:
-            return True
+
         if self.coordinates['representative_transcript'] == None:
-            self.error_type = "No representative transcript"
+            self.error_type.append("No representative transcript")
             return True
         return False
 
@@ -143,24 +146,25 @@ class VariantDetails:
             self.wrong_coords()
             self.wrong_base()
             self.no_rep_trans()
+            self.make_error_string()
 
-            if self.error_type == None:
+            if len(self.error_type) == 0:
                 return False
 
             if self.args.no_coords:
-                if self.error_type == "No coordinate":
+                if "No coordinate" in self.error_type:
                     return True
 
-            if self.args.wrong_coords:
-                if self.error_type == "Wrong coordinates":
+            if self.args.wrong_coords :
+                if "Wrong coordinates" in self.error_type:
                     return True
                 
             if self.args.wrong_base:
-                if self.error_type == "Wrong base":
+                if "Wrong base" in self.error_type:
                     return True
                 
             if self.args.no_rep_trans:
-                if self.error_type == "No representative transcript":
+                if "No representative transcript" in self.error_type:
                     return True              
         else:
             satisfies = False
@@ -175,14 +179,15 @@ class VariantDetails:
 
     def print1(self):
         "Print variant details"
+        print   "Error types: "
+        for error in self.error_type:
+            print error
         print   "ID: ", \
                 self.id, \
                 "Name: ", \
                 self.name, \
                 "Gene name: ", \
                 self.gene_name, \
-                "Error type: ", \
-                self.error_type, \
                 "Ref base: ", \
                 self.ref_base, \
                 "Var base: ", \
