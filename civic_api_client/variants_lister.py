@@ -99,6 +99,11 @@ class VariantDetails:
     #Returns true if ref/variant base not in [A,C,G,T,N]
     def wrong_base(self):
         "Are both the ref/variant base in [A,C,G,T,N,None]"
+        if self.coordinates['stop'] and self.coordinates['start']:
+            var_len = int(self.coordinates['stop']) - \
+            int(self.coordinates['start'])
+            if var_len > 10:
+                return False
 
         allowed_nucs = ['A', 'C', 'G', 'T', 'N']
         if (self.ref_base not in allowed_nucs or self.var_base not in allowed_nucs):
