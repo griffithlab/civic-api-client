@@ -61,7 +61,7 @@ class VariantDetails:
         coord = self.coordinates['chromosome'] or \
                 self.coordinates['start'] or \
                 self.coordinates['stop']
-        if not coord and self.error_type == None:   
+        if not coord and self.error_type == None:
             self.error_type = "No coordinate"
         return coord
 
@@ -74,7 +74,7 @@ class VariantDetails:
 
         try:
             rval = (int(self.coordinates['start']) > \
-             int(self.coordinates['stop'])) 
+             int(self.coordinates['stop']))
         except ValueError:
             self.error_type = "Wrong coordinates"
             return True
@@ -122,16 +122,15 @@ class VariantDetails:
         satisfies = True
 
         if self.coordinates:
-            
             # Variant length doesn't fit
             if self.args.max_var_length:
                 maxvarlength = self.max_var_length()
-                if not maxvarlength: 
+                if not maxvarlength:
                     return False;
 
-            nocoodrs = self.no_coords() 
+            nocoodrs = self.no_coords()
             wrongcoords = self.wrong_coords()
-            wrongbase = self.wrong_base()  
+            wrongbase = self.wrong_base()
             if self.error_type == None:
                 return False
 
