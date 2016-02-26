@@ -8,6 +8,7 @@ requests.packages.urllib3.disable_warnings()
 
 import civic_api_client
 import utils
+import re
 
 class VariantDetails:
     coordinates = {}
@@ -134,6 +135,10 @@ class VariantDetails:
         if self.coordinates['representative_transcript'] == None:
             self.error_type.append("No representative transcript")
             return True
+        else:
+            transcript = self.coordinates['representative_transcript']
+            if not re.match('ENST\d+\.\d+',transcript):
+                self.error_type.append("Wrong transcript format")
         return False
 
     def satisfies_filters(self):
