@@ -58,7 +58,7 @@ class VariantDetails:
     # Make a string of errors for website output
     def make_error_string(self):
         for error in self.error_type:
-            self.error_str += error+'/'
+            self.error_str += error+','
 
     #Returns true if the variant does not have defined coordinates
     def no_coords(self):
@@ -184,13 +184,13 @@ class VariantDetails:
 
     def print1(self):
         "Print variant details"
-        print   "Error types: "
-        for error in self.error_type:
-            print error
+        print   
         print   "ID: ", \
                 self.id, \
                 "Name: ", \
                 self.name, \
+                "Error types: ", \
+                self.error_str, \
                 "Gene name: ", \
                 self.gene_name, \
                 "Ref base: ", \
