@@ -9,6 +9,7 @@ requests.packages.urllib3.disable_warnings()
 import civic_api_client
 import utils
 import re
+import gzip
 
 class VariantDetails:
     coordinates = {}
@@ -128,18 +129,67 @@ class VariantDetails:
 
             return rval
 
+    # Pattern example : ENST00000355413.4
+    def rep_trans_format(self,transcript):
+        "Check the format of representative transcript"
+        if not re.match('ENST\d+\.\d+',transcript):
+            self.error_type.append("Wrong transcript format")
+            return True
+        return False
 
-    def no_rep_trans(self):
+    def rep_trans_valid(self,transcript):
+        "Check if the representative transcript can be found in reference file"
+        Invalid = True
+        if not self.args.transcript_file:
+            return False
+        transID = transcript.split('.')[0]
+        versionID = transcript.split('.')[1]
+        reference = gzip.open(self.args.transcript_file,'rb')
+        for line in reference:
+            ref_transID = line.split()[14]
+            ref_versionID = line.split()[15]
+            if transID == ref_transID and versionID == ref_versionID:
+                Invalid = False
+        reference.close()
+        if Invalid:
+            self.error_type.append("Invalid representative transcript")
+        return Invalid
+
+
+    def rep_trans(self):
         "Check if there's missing representative transcript"
-
+        Invalid = False
         if self.coordinates['representative_transcript'] == None:
             self.error_type.append("No representative transcript")
-            return True
+            Invalid = True
         else:
             transcript = self.coordinates['representative_transcript']
-            if not re.match('ENST\d+\.\d+',transcript):
-                self.error_type.append("Wrong transcript format")
+            if self.rep_trans_format(transcript):
+                Invalid = True
+            else:
+                if self.rep_trans_valid(transcript):
+                    Invalid = True
+
+        return Invalid
+
+
+    def ensembl_version(self):
+        "Check if the ensembl version is missing"
+        if self.coordinates['representative_transcript'] == None:
+            return False
+        if self.coordinates['ensembl_version'] == None:
+            self.error_type.append("No Ensembl version")
+            return True
+        else:
+            e_version = self.coordinates['ensembl_version']
+            if type(e_version).__name__ == 'int':
+                return False
+            else:
+                self.error_type.append("Wrong Ensembl version")
+                return True
         return False
+
+
 
     def satisfies_filters(self):
         "Does the variant satisfy any one of the conditions"
@@ -155,7 +205,8 @@ class VariantDetails:
             self.no_coords() 
             self.wrong_coords()
             self.wrong_base()
-            self.no_rep_trans()
+            self.rep_trans()
+            self.ensembl_version()
             self.make_error_string()
 
             if len(self.error_type) == 0:
@@ -173,16 +224,23 @@ class VariantDetails:
                 if "Wrong base" in self.error_type:
                     return True
                 
-            if self.args.no_rep_trans:
-                if "No representative transcript" in self.error_type:
-                    return True              
+            if self.args.rep_trans:
+                if "No representative transcript" in self.error_type \
+                or "Wrong transcript format" in self.error_type:
+                    return True  
+
+            if self.args.ensembl_version:
+                if "No Ensembl version" in self.error_type \
+                or "Wrong Ensembl version" in self.error_type:
+                    return True            
         else:
             satisfies = False
 
         if self.args.no_coords or \
         self.args.wrong_coords or \
         self.args.wrong_base or \
-        self.args.no_rep_trans:
+        self.args.rep_trans or \
+        self.args.ensembl_version:
             satisfies = False
 
         return satisfies
@@ -249,10 +307,19 @@ class VariantsLister:
             action='store_true',
             help = "Print variants where ref/var base is not in [A,C,G,T,N,None]",
         )
-        parser.add_argument("--no-rep-trans",
+        parser.add_argument("--rep-trans",
             action='store_true',
-            help = "Print variants with no representative transcript",
+            help = "Print variants with no/wrong representative transcript",
         )
+        parser.add_argument("--ensembl-version",
+            action='store_true',
+            help = "Print variants with no/wrong ensembl versions",
+        )
+        parser.add_argument("--transcript-file",
+            help = "Reference file (transcript.txt.gz) of all valid ensembl transcripts for Ensembl v75",
+            type = str
+        )
+
         parser.add_argument("--max-gene-count",
             help = "Maximum number of genes to query from CIVIC [100,000]",
             type = int,
