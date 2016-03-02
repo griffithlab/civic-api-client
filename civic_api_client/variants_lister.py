@@ -329,7 +329,7 @@ class VariantsLister:
         )
         parser.add_argument("--ensembl-version",
             action='store_true',
-            help = "Print variants with no/wrong ensembl versions",
+            help = "Print variants with no/wrong ensembl database version",
         )
         parser.add_argument("--transcript-file",
             help = "Reference file (transcript.txt.gz) of all valid ensembl transcripts for Ensembl v75",
