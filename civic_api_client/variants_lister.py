@@ -59,8 +59,7 @@ class VariantDetails:
 
     # Make a string of errors for website output
     def make_error_string(self):
-        for error in self.error_type:
-            self.error_str += error+','
+        self.error_str = ','.join(self.error_type)
 
     #Returns true if the variant does not have defined coordinates
     def no_coords(self):
@@ -101,6 +100,9 @@ class VariantDetails:
     #Returns true if ref/variant base not in [A,C,G,T,N]
     def wrong_base(self):
         "Are both the ref/variant base in [A,C,G,T,N,None]"
+        if self.coordinates['chromosome2'] != None:
+            return False
+
         if self.coordinates['stop'] and self.coordinates['start']:
             var_len = int(self.coordinates['stop']) - \
             int(self.coordinates['start'])
@@ -170,6 +172,18 @@ class VariantDetails:
                 if self.rep_trans_valid(transcript):
                     Invalid = True
 
+        if self.coordinates['chromosome2'] != None: 
+            if self.coordinates['representative_transcript2'] == None:
+                self.error_type.append("No representative transcript")
+                Invalid = True
+            else:
+                transcript = self.coordinates['representative_transcript2']
+                if self.rep_trans_format(transcript):
+                    Invalid = True
+                else :
+                    self.rep_trans_valid(transcript)
+                    Invalid = True
+
         return Invalid
 
 
@@ -226,7 +240,8 @@ class VariantDetails:
                 
             if self.args.rep_trans:
                 if "No representative transcript" in self.error_type \
-                or "Wrong transcript format" in self.error_type:
+                or "Wrong transcript format" in self.error_type \
+                or "Invalid representative transcript" in self.error_type:
                     return True  
 
             if self.args.ensembl_version:
@@ -252,13 +267,13 @@ class VariantDetails:
                 self.id, \
                 "Name: ", \
                 self.name, \
-                "Error types: ", \
+                "Error_types: ", \
                 self.error_str, \
-                "Gene name: ", \
+                "Gene_name: ", \
                 self.gene_name, \
-                "Ref base: ", \
+                "Ref_base: ", \
                 self.ref_base, \
-                "Var base: ", \
+                "Var_base: ", \
                 self.var_base, \
                 "Coordinate1: ", \
                 self.coordinates['chromosome'], \
@@ -269,6 +284,7 @@ class VariantDetails:
                 self.coordinates['chromosome2'], \
                 self.coordinates['start2'], \
                 self.coordinates['stop2'], \
+                self.coordinates['representative_transcript2'], \
                 "URL: ", \
                 self.civic_url
 

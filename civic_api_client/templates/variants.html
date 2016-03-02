@@ -21,9 +21,11 @@
             <th>Chromosome</th>
             <th>Start</th>
             <th>Stop</th>
+            <th>Rep. Transcript</th>
             <th>Chromosome2</th>
             <th>Start2</th>
             <th>Stop2</th>
+            <th>Rep. Transcript2</th>
             <th>URL</th>
         </tr>
     {% for variant_details in filtered_variant_details %}
@@ -37,12 +39,22 @@
             <td> {{variant_details.coordinates['chromosome']}} </td>
             <td> {{variant_details.coordinates['start']}} </td>
             <td> {{variant_details.coordinates['stop']}} </td>
+            <td> {{variant_details.coordinates['representative_transcript']}} </td>
             <td> {{variant_details.coordinates['chromosome2']}} </td>
             <td> {{variant_details.coordinates['start2']}} </td>
             <td> {{variant_details.coordinates['stop2']}} </td>
+            <td> {{variant_details.coordinates['representative_transcript2']}} </td>
             <td> <a href={{variant_details.civic_url}}> {{variant_details.civic_url}} </a> </td>
             {% else %}
+            <td> "NA" </td>
             <td> {{variant_details['id']}} </td>
+            <td> "NA" </td>
+            <td> "NA" </td>
+            <td> "NA" </td>
+            <td> "NA" </td>
+            <td> "NA" </td>
+            <td> "NA" </td>
+            <td> "NA" </td>
             <td> "NA" </td>
             <td> "NA" </td>
             <td> "NA" </td>
