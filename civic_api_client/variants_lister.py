@@ -8,6 +8,8 @@ requests.packages.urllib3.disable_warnings()
 
 import civic_api_client
 import utils
+import re
+import gzip
 
 class VariantDetails:
     coordinates = {}
@@ -25,7 +27,8 @@ class VariantDetails:
         self.parse_variant_details(variant_details)
         self.civic_url = self.define_civic_url(variant_details)
         self.gene_id = None
-        self.error_type = None
+        self.error_type = []
+        self.error_str = ""
 
     @classmethod
     def define_civic_url(self, variant_details):
@@ -44,6 +47,7 @@ class VariantDetails:
                 self.ref_base = variant_details['coordinates']['reference_bases']
             if 'variant_bases' in variant_details['coordinates']:
                 self.var_base = variant_details['coordinates']['variant_bases']
+        
         if 'name' in variant_details:
             self.name = variant_details['name']
         if 'id' in variant_details:
@@ -53,30 +57,33 @@ class VariantDetails:
         if 'gene_id' in variant_details:
             self.gene_id = variant_details['gene_id']
 
+    # Make a string of errors for website output
+    def make_error_string(self):
+        self.error_str = ','.join(self.error_type)
+
     #Returns true if the variant does not have defined coordinates
     def no_coords(self):
         "Does the variant have the chr, start and stop defined"
-        if self.error_type != None:
-            return True
+    
         coord = self.coordinates['chromosome'] or \
                 self.coordinates['start'] or \
                 self.coordinates['stop']
-        if not coord and self.error_type == None:
-            self.error_type = "No coordinate"
+        if not coord:
+            self.error_type.append("No coordinate")
         return coord
 
     #Returns true if the variant start > stop
     def wrong_coords(self):
         "Does the variant have start > stop"
         rval = False
-        if self.error_type != None:
-            return True
+        if "No coordinate" in self.error_type: 
+            return False
 
         try:
             rval = (int(self.coordinates['start']) > \
              int(self.coordinates['stop']))
         except ValueError:
-            self.error_type = "Wrong coordinates"
+            self.error_type.append("Wrong coordinates")
             return True
 
         if self.coordinates['start2'] and \
@@ -85,20 +92,27 @@ class VariantDetails:
             rval = (int(self.coordinates['start2']) > \
              int(self.coordinates['stop2']))
 
-        if rval and self.error_type == None:
-            self.error_type = "Wrong coordinates"
+        if rval:
+            self.error_type.append("Wrong coordinates")
 
         return rval
 
     #Returns true if ref/variant base not in [A,C,G,T,N]
     def wrong_base(self):
         "Are both the ref/variant base in [A,C,G,T,N,None]"
-        if self.error_type != None:
-            return True
+        if self.coordinates['chromosome2'] != None:
+            return False
+
+        if self.coordinates['stop'] and self.coordinates['start']:
+            var_len = int(self.coordinates['stop']) - \
+            int(self.coordinates['start'])
+            if var_len > 10:
+                return False
+
         allowed_nucs = ['A', 'C', 'G', 'T', 'N']
         if (self.ref_base not in allowed_nucs or self.var_base not in allowed_nucs):
-            if self.error_type == None:
-                self.error_type = "Wrong base"
+            self.error_type.append("Wrong base")
+
         return (self.ref_base not in allowed_nucs or
                 self.var_base not in allowed_nucs)
 
@@ -117,6 +131,80 @@ class VariantDetails:
 
             return rval
 
+    # Pattern example : ENST00000355413.4
+    def rep_trans_format(self,transcript):
+        "Check the format of representative transcript"
+        if not re.match('ENST\d+\.\d+',transcript):
+            self.error_type.append("Wrong transcript format")
+            return True
+        return False
+
+    def rep_trans_valid(self,transcript):
+        "Check if the representative transcript can be found in reference file"
+        Invalid = True
+        if not self.args.transcript_file:
+            return False
+        transID = transcript.split('.')[0]
+        versionID = transcript.split('.')[1]
+        reference = gzip.open(self.args.transcript_file,'rb')
+        for line in reference:
+            ref_transID = line.split()[14]
+            ref_versionID = line.split()[15]
+            if transID == ref_transID and versionID == ref_versionID:
+                Invalid = False
+        reference.close()
+        if Invalid:
+            self.error_type.append("Invalid representative transcript")
+        return Invalid
+
+
+    def rep_trans(self):
+        "Check if there's missing representative transcript"
+        Invalid = False
+        if self.coordinates['representative_transcript'] == None:
+            self.error_type.append("No representative transcript")
+            Invalid = True
+        else:
+            transcript = self.coordinates['representative_transcript']
+            if self.rep_trans_format(transcript):
+                Invalid = True
+            else:
+                if self.rep_trans_valid(transcript):
+                    Invalid = True
+
+        if self.coordinates['chromosome2'] != None: 
+            if self.coordinates['representative_transcript2'] == None:
+                self.error_type.append("No representative transcript")
+                Invalid = True
+            else:
+                transcript = self.coordinates['representative_transcript2']
+                if self.rep_trans_format(transcript):
+                    Invalid = True
+                else :
+                    self.rep_trans_valid(transcript)
+                    Invalid = True
+
+        return Invalid
+
+
+    def ensembl_version(self):
+        "Check if the ensembl version is missing"
+        if self.coordinates['representative_transcript'] == None:
+            return False
+        if self.coordinates['ensembl_version'] == None:
+            self.error_type.append("No Ensembl version")
+            return True
+        else:
+            e_version = self.coordinates['ensembl_version']
+            if type(e_version).__name__ == 'int':
+                return False
+            else:
+                self.error_type.append("Wrong Ensembl version")
+                return True
+        return False
+
+
+
     def satisfies_filters(self):
         "Does the variant satisfy any one of the conditions"
         satisfies = True
@@ -128,54 +216,75 @@ class VariantDetails:
                 if not maxvarlength:
                     return False;
 
-            nocoodrs = self.no_coords()
-            wrongcoords = self.wrong_coords()
-            wrongbase = self.wrong_base()
-            if self.error_type == None:
+            self.no_coords() 
+            self.wrong_coords()
+            self.wrong_base()
+            self.rep_trans()
+            self.ensembl_version()
+            self.make_error_string()
+
+            if len(self.error_type) == 0:
                 return False
 
             if self.args.no_coords:
-                if self.error_type == "No coordinate":
+                if "No coordinate" in self.error_type:
                     return True
-                else:
-                    return False
-            if self.args.wrong_coords:
-                if self.error_type == "Wrong coordinates":
+
+            if self.args.wrong_coords :
+                if "Wrong coordinates" in self.error_type:
                     return True
-                else:
-                    return False
+                
             if self.args.wrong_base:
-                if self.error_type == "Wrong base":
+                if "Wrong base" in self.error_type:
                     return True
-                else:
-                    return False
+                
+            if self.args.rep_trans:
+                if "No representative transcript" in self.error_type \
+                or "Wrong transcript format" in self.error_type \
+                or "Invalid representative transcript" in self.error_type:
+                    return True  
+
+            if self.args.ensembl_version:
+                if "No Ensembl version" in self.error_type \
+                or "Wrong Ensembl version" in self.error_type:
+                    return True            
         else:
+            satisfies = False
+
+        if self.args.no_coords or \
+        self.args.wrong_coords or \
+        self.args.wrong_base or \
+        self.args.rep_trans or \
+        self.args.ensembl_version:
             satisfies = False
 
         return satisfies
 
     def print1(self):
         "Print variant details"
+        print   
         print   "ID: ", \
                 self.id, \
                 "Name: ", \
                 self.name, \
-                "Gene name: ", \
+                "Error_types: ", \
+                self.error_str, \
+                "Gene_name: ", \
                 self.gene_name, \
-                "Error type: ", \
-                self.error_type, \
-                "Ref base: ", \
+                "Ref_base: ", \
                 self.ref_base, \
-                "Var base: ", \
+                "Var_base: ", \
                 self.var_base, \
                 "Coordinate1: ", \
                 self.coordinates['chromosome'], \
                 self.coordinates['start'], \
                 self.coordinates['stop'], \
+                self.coordinates['representative_transcript'], \
                 "Coordinate2: ", \
                 self.coordinates['chromosome2'], \
                 self.coordinates['start2'], \
                 self.coordinates['stop2'], \
+                self.coordinates['representative_transcript2'], \
                 "URL: ", \
                 self.civic_url
 
@@ -214,6 +323,19 @@ class VariantsLister:
             action='store_true',
             help = "Print variants where ref/var base is not in [A,C,G,T,N,None]",
         )
+        parser.add_argument("--rep-trans",
+            action='store_true',
+            help = "Print variants with no/wrong representative transcript",
+        )
+        parser.add_argument("--ensembl-version",
+            action='store_true',
+            help = "Print variants with no/wrong ensembl database version",
+        )
+        parser.add_argument("--transcript-file",
+            help = "Reference file (transcript.txt.gz) of all valid ensembl transcripts for Ensembl v75",
+            type = str
+        )
+
         parser.add_argument("--max-gene-count",
             help = "Maximum number of genes to query from CIVIC [100,000]",
             type = int,
