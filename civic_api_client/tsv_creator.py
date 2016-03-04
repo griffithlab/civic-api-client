@@ -25,7 +25,6 @@ class TsvEvidenceItmes:
         self.disease_name = None
         self.doid = None 
         self.drug_names = None  
-        self.pubchem_id = None
         self.evi_type = None
         self.evi_dir = None
         self.cli_sig = None
@@ -35,16 +34,26 @@ class TsvEvidenceItmes:
         self.rating = None
 
         # Added columns
+        self.evi_status = None
         self.evi_id = None
         self.var_id = None     
         self.gene_id = None
         self.coordinates = None 
         self.var_summary = None 
+        self.var_ori = None
         self.evidence_civic_url = EvidenceItems.define_evidence_url(variant_details,evidence_items)
         self.variant_civic_url = VariantDetails.define_civic_url(variant_details)
+        self.gene_civic_url = self.define_gene_url(variant_details)
 
         self.parse_variant_details(variant_details)
         self.parse_evidence_details(evidence_items)
+
+    def define_gene_url(self, variant_details):
+        "Define the CIVIC URL for the gene"
+        if 'gene_id' not in variant_details:
+            variant_details['gene_id'] = "NA"
+        return "https://civic.genome.wustl.edu/#/events/genes/" + \
+               str(variant_details['gene_id']) + "/summary#gene/" 
 
     def parse_variant_details(self, variant_details):
         "Parse Variant Details into class members"
@@ -71,8 +80,6 @@ class TsvEvidenceItmes:
             self.evi_type = evidence_items['evidence_type']
         if 'drugs' in evidence_items:
             self.drug_names = self.list_all_drugs(evidence_items['drugs'])
-        if 'drugs' in evidence_items:
-            self.pubchem_id = self.list_all_pubchem_id(evidence_items['drugs'])
         if 'disease' in evidence_items:
             self.disease_name = evidence_items['disease']['name']
         if 'doid' in evidence_items['disease']:
@@ -89,6 +96,10 @@ class TsvEvidenceItmes:
             self.citation = evidence_items['citation']
         if 'rating' in evidence_items:
             self.rating = evidence_items['rating']
+        if 'status' in evidence_items:
+            self.evi_status = evidence_items['status']
+        if 'variant_origin' in evidence_items:
+            self.var_ori = evidence_items['variant_origin']
 
     def list_all_drugs(self,drugs_list):
         drugs = []
@@ -118,14 +129,14 @@ class TsvEvidenceItmes:
                     repr(self.disease_name)+"\t"+ \
                     repr(self.doid)+"\t"+ \
                     repr(self.drug_names)+"\t"+ \
-                    repr(self.pubchem_id)+"\t"+ \
                     repr(self.evi_type)+"\t"+ \
-                    repr(self.evi_dir)+"\t"+ \
+                    repr(self.evi_dir)+"\t"+\
                     repr(self.cli_sig)+"\t"+ \
-                    repr(self.evi_summary)+"\t"+ \
+                    repr(self.evi_summary)+"\t"+\
                     repr(self.pub_id)+"\t"+ \
                     repr(self.citation)+"\t"+ \
                     repr(self.rating)+"\t"+ \
+                    repr(self.evi_status)+"\t"+ \
                     repr(self.evi_id)+"\t"+ \
                     repr(self.var_id)+"\t"+ \
                     repr(self.gene_id)+"\t"+ \
@@ -142,11 +153,13 @@ class TsvEvidenceItmes:
                     repr(self.coordinates['ensembl_version'])+"\t"+ \
                     repr(self.coordinates['reference_build'])+"\t"+ \
                     repr(self.var_summary)+"\t"+ \
+                    repr(self.var_ori)+"\t"+ \
                     repr(self.evidence_civic_url)+"\t"+ \
-                    repr(self.variant_civic_url)+"\n"
+                    repr(self.variant_civic_url)+"\t"+ \
+                    repr(self.gene_civic_url)+"\n"
         row_u_remove = row_string.replace('u\'','')
         row = row_u_remove.replace('\'','')
-        return row                
+        return row         
     
 
 class TsvFileLister:
@@ -177,14 +190,14 @@ class TsvFileLister:
                 'disease'+'\t'+ \
                 'doid'+'\t'+ \
                 'drugs'+'\t'+ \
-                'pubchem_ids'+'\t'+ \
                 'evidence_type'+'\t'+ \
                 'evidence_direction'+'\t'+ \
                 'clinical_significance'+'\t'+ \
                 'evidence_statement'+'\t'+ \
-                'pubchem_id'+'\t'+ \
+                'pubmed_id'+'\t'+ \
                 'citation'+'\t'+ \
                 'rating'+'\t'+ \
+                'evidence_status'+'\t'+ \
                 'evidence_id'+'\t'+ \
                 'variant_id'+'\t'+ \
                 'gene_id'+'\t'+ \
@@ -201,8 +214,10 @@ class TsvFileLister:
                 'ensembl_version'+'\t'+ \
                 'reference_build'+'\t'+ \
                 'variant_summary'+'\t'+ \
+                'variant_origin'+'\t'+ \
                 'evidence_civic_url'+'\t'+ \
-                'variant_civic_url'+'\n'
+                'variant_civic_url'+'\t'+ \
+                'gene_civic_url'+'\n'
 
     def get_info_and_print(self):
         "Get variants and evidence items "
