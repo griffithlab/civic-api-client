@@ -4,6 +4,7 @@ import sys
 import civic_api_client
 from variants_lister import VariantsLister
 from evidence_items_lister import EvidenceItemsLister
+from tsv_creator import TsvFileLister
 
 def usage():
     "Defines usage for the tool"
@@ -12,6 +13,7 @@ def usage():
     print "\tvariants-list"
     print "\tevidence-items-list"
     print "\taction-items-web-view"
+    print "\ttsv-creat"
 
 def main():
     "Everything starts here"
@@ -24,6 +26,9 @@ def main():
             return eil1.main()
         elif sys.argv[1] == "action-items-web-view":
             web_view()
+        elif sys.argv[1] == "tsv-creat":
+            tsv1 = TsvFileLister(sys.argv[2:])
+            return tsv1.main()
         else:
             return usage()
 
