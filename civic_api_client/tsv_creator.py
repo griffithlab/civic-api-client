@@ -158,7 +158,9 @@ class TsvEvidenceItmes:
                     repr(self.variant_civic_url)+"\t"+ \
                     repr(self.gene_civic_url)+"\n"
         row_u_remove = row_string.replace('u\'','')
-        row = row_u_remove.replace('\'','')
+        row_remove2 = row_u_remove.replace('u\"','')
+        row_remove3 = row_remove2.replace('\"','')
+        row = row_remove3.replace('\'','')
         return row         
     
 
