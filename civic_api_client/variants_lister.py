@@ -379,7 +379,7 @@ class VariantsLister:
 
     def prior_check(self,variant_detail):
         """Prior checks before parsing variant details:
-        1. Fliter variant with no accepted evidence item"""
+        1. Filter variant with no accepted evidence item"""
         valid = False
         if 'evidence_items' in variant_detail:
             for evi in variant_detail['evidence_items']:

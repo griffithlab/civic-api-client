@@ -31,7 +31,7 @@ Command options:
 1. variants-list
 2. evidence-items-list
 3. action-items-web-view
-4. tsv-creat
+4. tsv-create
 
 1. List variants errors
 Basic usage (check for all variants and print out all errors):
@@ -80,7 +80,7 @@ civic-api-client evidence-items-list --web
 ```
 4. Export all evidence items as tsv file 
 ```
-civic-api-client tsv-creat
+civic-api-client tsv-create
 ```
 
 ##Development
