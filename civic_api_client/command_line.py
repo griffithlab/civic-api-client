@@ -13,7 +13,7 @@ def usage():
     print "\tvariants-list"
     print "\tevidence-items-list"
     print "\taction-items-web-view"
-    print "\ttsv-creat"
+    print "\ttsv-create"
 
 def main():
     "Everything starts here"
@@ -26,7 +26,7 @@ def main():
             return eil1.main()
         elif sys.argv[1] == "action-items-web-view":
             web_view()
-        elif sys.argv[1] == "tsv-creat":
+        elif sys.argv[1] == "tsv-create":
             tsv1 = TsvFileLister(sys.argv[2:])
             return tsv1.main()
         else:

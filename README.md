@@ -27,26 +27,61 @@ deactivate
 ```
 
 ##Usage
-Very basic functionality for now, this will run a web-server on
+Command options:
+1. variants-list
+2. evidence-items-list
+3. action-items-web-view
+4. tsv-create
+
+1. List variants errors
+Basic usage (check for all variants and print out all errors):
+```
+civic-api-client variants-list
+```
+Error type can be specified, for example:
+```
+civic-api-client variants-list --wrong-base
+```
+Command above will print variants where ref/var base is not in [A,C,G,T,N,None]
+For more error types, see help manu with following command:
+```
+civic-api-client variants-list -h
+```
+2. List evidence errors
+Basic usage (check for all evidence and print out all errors):
+```
+civic-api-client evidence-items-list
+```
+Error type can be specified, for example, search for missing drug items:
+Print out on screen(All types):
+```
+civic-api-client evidence-items-list --drug 
+```
+Specify evidence types and print on web page(Predictive,for example):
+```
+civic-api-client evidence-items-list --drug --evi-type Predictive --web
+```
+For more error types, see help manu with following command:
+```
+civic-api-client evidence-items-list -h
+```
+3. Check for variants or evidences errors on web
+Basic functionality for now, this will run a web-server on
 http://127.0.0.1:5000/ , this page will list the items that need work.
 ```
 civic-api-client action-items-web-view
 ```
-
-Here's the usage for drug search:
-
-Print out on screen(All types):
-civic-api-client evidence-items-list --drug 
-
-Print out on web(All types):
-civic-api-client evidence-items-list --drug --web
-
-Specify evidence types(Prognostic,for example):
-civic-api-client evidence-items-list --drug --evi-type Predictive
-
-Specify evidence types and print on web page(Predictive,for example):
-civic-api-client evidence-items-list --drug --evi-type Predictive --web
-
+Can also be done by following command:
+```
+civic-api-client variants-list --web
+```
+```
+civic-api-client evidence-items-list --web
+```
+4. Export all evidence items as tsv file 
+```
+civic-api-client tsv-create
+```
 
 ##Development
 To contribute to the code for this project, please fork the repo and submit a pull request.

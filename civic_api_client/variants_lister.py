@@ -377,12 +377,24 @@ class VariantsLister:
         variant_url = utils.civic_api_url() + 'variants/' + str(variant_id)
         return requests.get(variant_url, verify = False).json()
 
+    def prior_check(self,variant_detail):
+        """Prior checks before parsing variant details:
+        1. Filter variant with no accepted evidence item"""
+        valid = False
+        if 'evidence_items' in variant_detail:
+            for evi in variant_detail['evidence_items']:
+                if evi['status'] ==  "accepted":
+                    valid = True
+        return valid
+
+
     def filter_variants(self):
         "Filter the variant details"
         for variant_details in self.all_variant_details:
-            vd1 = VariantDetails(self.args, variant_details)
-            if vd1.satisfies_filters():
-                self.filtered_variant_details.append(vd1)
+            if self.prior_check(variant_details):
+                vd1 = VariantDetails(self.args, variant_details)
+                if vd1.satisfies_filters():
+                    self.filtered_variant_details.append(vd1)
 
     def get_filtered_variant_details(self):
         "Return the list of filtered variant details"
