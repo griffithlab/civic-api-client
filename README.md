@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/griffithlab/civic-api-client.svg?branch=master)](https://travis-ci.org/griffithlab/civic-api-client)
+
 # civic-api-client
 Example tools using the CIVIC API. Very basic docs on using the API is
 [here](https://civic.genome.wustl.edu/#/api-documentation). The schemas
