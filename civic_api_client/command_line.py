@@ -17,20 +17,24 @@ def usage():
 
 def main():
     "Everything starts here"
-    if len(sys.argv) >= 2:
-        if sys.argv[1] == "variants-list":
-            vl1 = VariantsLister(sys.argv[2:])
-            return vl1.main()
-        elif sys.argv[1] == "evidence-items-list":
-            eil1 = EvidenceItemsLister(sys.argv[2:])
-            return eil1.main()
-        elif sys.argv[1] == "action-items-web-view":
-            web_view()
-        elif sys.argv[1] == "tsv-create":
-            tsv1 = TsvFileLister(sys.argv[2:])
-            return tsv1.main()
-        else:
-            return usage()
+    try:
+        if len(sys.argv) >= 2:
+            if sys.argv[1] == "variants-list":
+                vl1 = VariantsLister(sys.argv[2:])
+                return vl1.main()
+            elif sys.argv[1] == "evidence-items-list":
+                eil1 = EvidenceItemsLister(sys.argv[2:])
+                return eil1.main()
+            elif sys.argv[1] == "action-items-web-view":
+                web_view()
+            elif sys.argv[1] == "tsv-create":
+                tsv1 = TsvFileLister(sys.argv[2:])
+                return tsv1.main()
+            else:
+                return usage()
+    except KeyboardInterrupt:
+        print("Interrupted!")
+        sys.exit(0)
 
 def web_view():
     "Setup the webview"
