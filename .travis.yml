@@ -3,6 +3,9 @@ language: python
 script:
     - pip install .
 
+after_success:
+    - civic-api-client variants-list --no-coords
+
 os:
     - linux
 
