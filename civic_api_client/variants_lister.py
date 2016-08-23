@@ -358,7 +358,7 @@ class VariantsLister:
     def get_civic_genes(self):
         "Get a list of genes from CIVIC"
         genes_url = utils.civic_api_url() + 'genes?count=' + str(self.args.max_gene_count)
-        self.genes = sorted(requests.get(genes_url, verify = False).json(), \
+        self.genes = sorted(requests.get(genes_url, verify = False).json()['records'], \
                             key=lambda key: int(key['id']))
 
     def get_variant_ids(self):
