@@ -18,7 +18,8 @@ Install like any other Python package, I like using the Virtualenv setup.
 ``` bash
 git clone https://github.com/griffithlab/civic-api-client
 cd civic-api-client
-virtualenv myenv
+virtualenv myenv 
+#virtualenv myenv --python=python2.7 #if you have problems with your python version
 source myenv/bin/activate
 pip install .
 ```
