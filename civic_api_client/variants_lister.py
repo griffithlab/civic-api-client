@@ -47,7 +47,7 @@ class VariantDetails:
                 self.ref_base = variant_details['coordinates']['reference_bases']
             if 'variant_bases' in variant_details['coordinates']:
                 self.var_base = variant_details['coordinates']['variant_bases']
-        
+
         if 'name' in variant_details:
             self.name = variant_details['name']
         if 'id' in variant_details:
@@ -83,7 +83,7 @@ class VariantDetails:
     def wrong_coords(self):
         "Does the variant have start > stop"
         rval = False
-        if "No coordinate" in self.error_type: 
+        if "No coordinate" in self.error_type:
             return False
 
         try:
@@ -179,7 +179,7 @@ class VariantDetails:
                 if self.rep_trans_valid(transcript):
                     Invalid = True
 
-        if self.coordinates['chromosome2'] != None: 
+        if self.coordinates['chromosome2'] != None:
             if self.coordinates['representative_transcript2'] == None:
                 self.error_type.append("No representative transcript")
                 Invalid = True
@@ -245,21 +245,21 @@ class VariantDetails:
             if self.args.wrong_coords :
                 if "Wrong coordinates" in self.error_type:
                     return True
-                
+
             if self.args.wrong_base:
                 if "Wrong base" in self.error_type:
                     return True
-                
+
             if self.args.rep_trans:
                 if "No representative transcript" in self.error_type \
                 or "Wrong transcript format" in self.error_type \
                 or "Invalid representative transcript" in self.error_type:
-                    return True  
+                    return True
 
             if self.args.ensembl_version:
                 if "No Ensembl version" in self.error_type \
                 or "Wrong Ensembl version" in self.error_type:
-                    return True            
+                    return True
         else:
             satisfies = False
 
@@ -275,7 +275,7 @@ class VariantDetails:
 
     def print1(self):
         "Print variant details"
-        print   
+        print
         print   "ID: ", \
                 self.id, \
                 "Name: ", \
