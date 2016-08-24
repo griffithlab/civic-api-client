@@ -56,15 +56,22 @@ class VariantDetails:
             self.gene_name = variant_details['entrez_name']
         if 'gene_id' in variant_details:
             self.gene_id = variant_details['gene_id']
+        if 'variant_types' in variant_details:
+            self.variant_types = variant_details['variant_types']
 
     # Make a string of errors for website output
     def make_error_string(self):
         self.error_str = ','.join(self.error_type)
 
+    #Returns true if the variant_types is empty
+    def no_variant_types(self):
+        "Does the variant have a variant type defined"
+        if self.variant_types == []:
+            self.error_type.append("No variant_types")
+
     #Returns true if the variant does not have defined coordinates
     def no_coords(self):
         "Does the variant have the chr, start and stop defined"
-    
         coord = self.coordinates['chromosome'] or \
                 self.coordinates['start'] or \
                 self.coordinates['stop']
@@ -216,7 +223,8 @@ class VariantDetails:
                 if not maxvarlength:
                     return False;
 
-            self.no_coords() 
+            self.no_variant_types()
+            self.no_coords()
             self.wrong_coords()
             self.wrong_base()
             self.rep_trans()
@@ -225,6 +233,10 @@ class VariantDetails:
 
             if len(self.error_type) == 0:
                 return False
+
+            if self.args.no_variant_types:
+                if "No variant_types" in self.error_type:
+                    return True
 
             if self.args.no_coords:
                 if "No coordinate" in self.error_type:
@@ -251,7 +263,8 @@ class VariantDetails:
         else:
             satisfies = False
 
-        if self.args.no_coords or \
+        if self.args.no_variant_types or \
+        self.args.no_coords or \
         self.args.wrong_coords or \
         self.args.wrong_base or \
         self.args.rep_trans or \
@@ -290,6 +303,8 @@ class VariantDetails:
 
 class VariantsLister:
     """Represent the variants in CIVIC"""
+    #Flag for empty variant types
+    variant_types = False
     #Flag to select variants with no co-ordinates
     no_coords = False
     #List of variant details
@@ -310,6 +325,10 @@ class VariantsLister:
         parser = argparse.ArgumentParser(description="civic-api-client version {}".format(civic_api_client.__version__),
             usage = "civic-api-client variants-list",
             formatter_class = argparse.RawTextHelpFormatter,
+        )
+        parser.add_argument("--no-variant-types",
+            action='store_true',
+            help = "Print variants with no variant_types defined"
         )
         parser.add_argument("--no-coords",
             action='store_true',
