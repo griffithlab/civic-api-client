@@ -5,6 +5,7 @@ script:
 
 after_success:
     - civic-api-client variants-list --no-coords
+    - civic-api-client variants-list --max-gene-count=100 --no-variant-types
 
 os:
     - linux
